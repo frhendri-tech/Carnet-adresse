@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.pyc
+
+# Base de données SQLite
+*.db
+
+# Fichiers sensibles
+admins.txt
+
+# VS Code
+.vscode/
