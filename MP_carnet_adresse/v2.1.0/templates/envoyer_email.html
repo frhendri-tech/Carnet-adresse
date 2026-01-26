@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Envoyer un email à {{ contact.nom }} {{ contact.prenom }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-envelope-fill"></i> Envoyer un email à {{ contact.get_nom_complet() }}
+                </h4>
+                <p class="mb-0 mt-2"><small>{{ contact.email }}</small></p>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('envoyer_email', nom=contact.nom, prenom=contact.prenom) }}">
+                    
+                    <!-- Choix du template -->
+                    <div class="mb-3">
+                        <label for="template" class="form-label">
+                            <i class="bi bi-file-earmark-text"></i> Type de message
+                        </label>
+                        <select class="form-select" id="template" name="template" onchange="chargerTemplate()">
+                            <option value="personnalise">Message personnalisé</option>
+                            <option value="bienvenue">Message de bienvenue</option>
+                            <option value="rappel">Rappel de rendez-vous</option>
+                            <option value="invitation">Invitation</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Sujet -->
+                    <div class="mb-3">
+                        <label for="sujet" class="form-label">
+                            <i class="bi bi-chat-quote"></i> Sujet <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" id="sujet" name="sujet" 
+                               required autofocus placeholder="Ex: Confirmation de rendez-vous">
+                    </div>
+
+                    <!-- Message -->
+                    <div class="mb-4">
+                        <label for="message" class="form-label">
+                            <i class="bi bi-card-text"></i> Message <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" id="message" name="message" 
+                                  rows="8" required 
+                                  placeholder="Écrivez votre message ici..."></textarea>
+                        <small class="text-muted">Vous pouvez utiliser HTML pour les templates prédéfinis.</small>
+                    </div>
+
+                    <!-- Boutons -->
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-info btn-lg">
+                            <i class="bi bi-send-fill"></i> Envoyer l'email
+                        </button>
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Informations -->
+        <div class="alert alert-warning mt-3">
+            <i class="bi bi-info-circle"></i> 
+            <strong>Important :</strong> 
+            Pour envoyer des emails, vous devez configurer votre compte email dans l'application.
+            <br>
+            <small>
+                Pour Gmail : Utilisez un "Mot de passe d'application" depuis 
+                <a href="https://myaccount.google.com/apppasswords" target="_blank" class="alert-link">
+                    myaccount.google.com/apppasswords
+                </a>
+            </small>
+        </div>
+    </div>
+</div>
+
+<script>
+function chargerTemplate() {
+    const template = document.getElementById('template').value;
+    const sujetInput = document.getElementById('sujet');
+    const messageInput = document.getElementById('message');
+    const nomContact = "{{ contact.prenom }}";
+    
+    switch(template) {
+        case 'bienvenue':
+            sujetInput.value = `Bienvenue ${nomContact} !`;
+            messageInput.value = `Bonjour ${nomContact},
+
+Nous sommes ravis de vous compter parmi nos contacts.
+
+N'hésitez pas à nous contacter pour toute question.
+
+Cordialement,
+L'équipe`;
+            break;
+            
+        case 'rappel':
+            sujetInput.value = `Rappel de rendez-vous`;
+            messageInput.value = `Bonjour ${nomContact},
+
+Ceci est un rappel concernant notre prochain rendez-vous.
+
+Nous vous attendons avec plaisir.
+
+Cordialement`;
+            break;
+            
+        case 'invitation':
+            sujetInput.value = `Invitation spéciale`;
+            messageInput.value = `Bonjour ${nomContact},
+
+Vous êtes cordialement invité(e) à notre événement.
+
+Nous serions honorés de votre présence.
+
+Cordialement`;
+            break;
+            
+        default:
+            sujetInput.value = '';
+            messageInput.value = '';
+    }
+}
+</script>
+{% endblock %}

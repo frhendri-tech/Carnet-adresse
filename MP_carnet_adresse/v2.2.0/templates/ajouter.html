@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Ajouter un contact{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-plus-circle"></i> Ajouter un nouveau contact
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('ajouter') }}" onsubmit="return validerFormulaire()">
+                    
+                    <!-- Informations de base -->
+                    <h5 class="border-bottom pb-2 mb-3">
+                        <i class="bi bi-person-badge"></i> Informations personnelles
+                    </h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="nom" class="form-label">
+                                <i class="bi bi-person"></i> Nom <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="nom" name="nom" 
+                                   required autofocus placeholder="Ex: ALAMI" 
+                                   oninput="this.value = this.value.toUpperCase()">
+                            <small class="text-muted">Sera automatiquement en MAJUSCULES</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="prenom" class="form-label">
+                                <i class="bi bi-person"></i> Prénom <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="prenom" name="prenom" 
+                                   required placeholder="Ex: AHMED"
+                                   oninput="this.value = this.value.toUpperCase()">
+                            <small class="text-muted">Sera automatiquement en MAJUSCULES</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">
+                            <i class="bi bi-envelope"></i> Email <span class="text-danger">*</span>
+                        </label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               required placeholder="Ex: ahmed.alami@gmail.com"
+                               onblur="validerEmail()">
+                        <div id="email-error" class="text-danger small mt-1" style="display:none;"></div>
+                        <small class="text-muted">Doit contenir @ et .</small>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="telephone" class="form-label">
+                            <i class="bi bi-telephone"></i> Téléphone <span class="text-danger">*</span>
+                        </label>
+                        <input type="tel" class="form-control" id="telephone" name="telephone" 
+                               required placeholder="Ex: 0612345678"
+                               maxlength="10"
+                               onblur="validerTelephone()">
+                        <div id="tel-error" class="text-danger small mt-1" style="display:none;"></div>
+                        <small class="text-muted">Exactement 10 chiffres commençant par 0</small>
+                    </div>
+
+                    <!-- Catégorie -->
+                    <h5 class="border-bottom pb-2 mb-3 mt-4">
+                        <i class="bi bi-tags"></i> Catégorie
+                    </h5>
+
+                    <div class="mb-4">
+                        <label for="categorie" class="form-label">
+                            <i class="bi bi-bookmark"></i> Type de contact
+                        </label>
+                        <select class="form-select" id="categorie" name="categorie" onchange="afficherChampsCategorie()">
+                            <option value="Personnel" selected>Personnel</option>
+                            <option value="Entreprise">Entreprise</option>
+                            <option value="Client">Client</option>
+                            <option value="Fournisseur">Fournisseur</option>
+                        </select>
+                    </div>
+
+                    <!-- Informations supplémentaires -->
+                    <div id="champs-supplementaires">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="bi bi-info-circle"></i> Informations supplémentaires (optionnel)
+                        </h5>
+
+                        <div class="mb-3">
+                            <label for="adresse" class="form-label">
+                                <i class="bi bi-geo-alt"></i> Adresse
+                            </label>
+                            <textarea class="form-control" id="adresse" name="adresse" 
+                                      rows="2" placeholder="Ex: 123 Rue Mohammed V, Meknes"></textarea>
+                        </div>
+
+                        <div class="row" id="champs-pro" style="display:none;">
+                            <div class="col-md-6 mb-3">
+                                <label for="entreprise" class="form-label">
+                                    <i class="bi bi-building"></i> Entreprise
+                                </label>
+                                <input type="text" class="form-control" id="entreprise" name="entreprise" 
+                                       placeholder="Ex: Société ABC">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="fonction" class="form-label">
+                                    <i class="bi bi-briefcase"></i> Fonction
+                                </label>
+                                <input type="text" class="form-control" id="fonction" name="fonction" 
+                                       placeholder="Ex: Directeur Commercial">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle"></i> Ajouter le contact
+                        </button>
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Alertes de validation -->
+        <div class="alert alert-info mt-3">
+            <i class="bi bi-info-circle"></i> 
+            <strong>Règles de validation :</strong>
+            <ul class="mb-0 mt-2">
+                <li>Nom et Prénom : Seront automatiquement en <strong>MAJUSCULES</strong></li>
+                <li>Email : Doit obligatoirement contenir <strong>@</strong> et <strong>.</strong></li>
+                <li>Téléphone : Doit contenir <strong>exactement 10 chiffres</strong> (Ex: 0612345678)</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+function afficherChampsCategorie() {
+    const categorie = document.getElementById('categorie').value;
+    const champsPro = document.getElementById('champs-pro');
+    
+    // Afficher les champs professionnels pour Entreprise, Client, Fournisseur
+    if (categorie !== 'Personnel') {
+        champsPro.style.display = 'flex';
+    } else {
+        champsPro.style.display = 'none';
+    }
+}
+
+function validerEmail() {
+    const email = document.getElementById('email').value;
+    const errorDiv = document.getElementById('email-error');
+    
+    // Vérifier la présence de @
+    if (!email.includes('@')) {
+        errorDiv.textContent = '❌ L\'email doit contenir le symbole @';
+        errorDiv.style.display = 'block';
+        return false;
+    }
+    
+    // Vérifier la présence de .
+    if (!email.includes('.')) {
+        errorDiv.textContent = '❌ L\'email doit contenir un point (.)';
+        errorDiv.style.display = 'block';
+        return false;
+    }
+    
+    // Vérifier que @ vient avant .
+    const atIndex = email.indexOf('@');
+    const dotIndex = email.lastIndexOf('.');
+    
+    if (atIndex >= dotIndex) {
+        errorDiv.textContent = '❌ Le @ doit venir avant le point';
+        errorDiv.style.display = 'block';
+        return false;
+    }
+    
+    errorDiv.style.display = 'none';
+    return true;
+}
+
+function validerTelephone() {
+    const telephone = document.getElementById('telephone').value;
+    const errorDiv = document.getElementById('tel-error');
+    
+    // Extraire uniquement les chiffres
+    const chiffres = telephone.replace(/\D/g, '');
+    
+    // Vérifier la longueur
+    if (chiffres.length !== 10) {
+        errorDiv.textContent = `❌ Le numéro doit contenir exactement 10 chiffres (Trouvé: ${chiffres.length})`;
+        errorDiv.style.display = 'block';
+        return false;
+    }
+    
+    // Vérifier que ça commence par 0
+    if (!chiffres.startsWith('0')) {
+        errorDiv.textContent = '❌ Le numéro doit commencer par 0';
+        errorDiv.style.display = 'block';
+        return false;
+    }
+    
+    errorDiv.style.display = 'none';
+    return true;
+}
+
+function validerFormulaire() {
+    const emailValide = validerEmail();
+    const telValide = validerTelephone();
+    
+    if (!emailValide || !telValide) {
+        alert('⚠️ Veuillez corriger les erreurs avant de soumettre le formulaire.');
+        return false;
+    }
+    
+    return true;
+}
+
+// Initialiser l'affichage au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    afficherChampsCategorie();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Modifier {{ contact.nom }} {{ contact.prenom }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0">
+                    <i class="bi bi-pencil"></i> Modifier le contact
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('modifier', nom=contact.nom, prenom=contact.prenom) }}">
+                    <div class="mb-3">
+                        <label for="nom" class="form-label">
+                            <i class="bi bi-person"></i> Nom <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" id="nom" name="nom" 
+                               value="{{ contact.nom }}" required autofocus>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="prenom" class="form-label">
+                            <i class="bi bi-person"></i> Prénom <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" id="prenom" name="prenom" 
+                               value="{{ contact.prenom }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">
+                            <i class="bi bi-envelope"></i> Email <span class="text-danger">*</span>
+                        </label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               value="{{ contact.email }}" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="telephone" class="form-label">
+                            <i class="bi bi-telephone"></i> Téléphone <span class="text-danger">*</span>
+                        </label>
+                        <input type="tel" class="form-control" id="telephone" name="telephone" 
+                               value="{{ contact.telephone }}" required>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-warning btn-lg">
+                            <i class="bi bi-check-circle"></i> Enregistrer les modifications
+                        </button>
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
