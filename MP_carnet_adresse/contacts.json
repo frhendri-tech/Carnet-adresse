@@ -1,0 +1,20 @@
+[
+    {
+        "nom": "RAMI",
+        "prenom": "ASMAE",
+        "email": "asmae@gmail.com",
+        "telephone": "06655443322"
+    },
+    {
+        "nom": "ASSOU",
+        "prenom": "FATIMA",
+        "email": "fati@gmil.com",
+        "telephone": "06677889911"
+    },
+    {
+        "nom": "ALAOUI",
+        "prenom": "MOHAMED",
+        "email": "med@gmail.com",
+        "telephone": "06611223344"
+    }
+]

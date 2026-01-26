@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Liste des contacts{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1><i class="bi bi-people-fill"></i> Mes Contacts</h1>
+        <p class="text-muted">
+            {% if recherche %}
+                Résultats pour "{{ recherche }}" : {{ contacts|length }} contact(s)
+            {% else %}
+                {{ contacts|length }} contact(s) au total
+            {% endif %}
+        </p>
+    </div>
+    <div class="col-md-4">
+        <form method="GET" action="{{ url_for('rechercher') }}" class="d-flex">
+            <input type="text" name="q" class="form-control me-2" 
+                   placeholder="🔍 Rechercher..." value="{{ recherche or '' }}">
+            <button type="submit" class="btn btn-outline-primary">
+                <i class="bi bi-search"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+{% if contacts %}
+<div class="table-responsive">
+    <table class="table table-hover table-striped">
+        <thead class="table-primary">
+            <tr>
+                <th>#</th>
+                <th><i class="bi bi-person"></i> Nom</th>
+                <th><i class="bi bi-person"></i> Prénom</th>
+                <th><i class="bi bi-envelope"></i> Email</th>
+                <th><i class="bi bi-telephone"></i> Téléphone</th>
+                <th class="text-center"><i class="bi bi-gear"></i> Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for contact in contacts %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td><strong>{{ contact.nom }}</strong></td>
+                <td>{{ contact.prenom }}</td>
+                <td>
+                    <a href="mailto:{{ contact.email }}" class="text-decoration-none">
+                        {{ contact.email }}
+                    </a>
+                </td>
+                <td>
+                    <a href="tel:{{ contact.telephone }}" class="text-decoration-none">
+                        {{ contact.telephone }}
+                    </a>
+                </td>
+                <td class="text-center">
+                    <div class="btn-group btn-group-sm" role="group">
+                        <a href="{{ url_for('modifier', nom=contact.nom, prenom=contact.prenom) }}" 
+                           class="btn btn-warning" title="Modifier">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="{{ url_for('supprimer', nom=contact.nom, prenom=contact.prenom) }}" 
+                           class="btn btn-danger" 
+                           onclick="return confirm('Êtes-vous sûr de vouloir supprimer {{ contact.nom }} {{ contact.prenom }} ?')"
+                           title="Supprimer">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info text-center">
+    <i class="bi bi-info-circle" style="font-size: 2rem;"></i>
+    <p class="mt-2 mb-0">
+        {% if recherche %}
+            Aucun contact trouvé pour "{{ recherche }}".
+        {% else %}
+            Aucun contact dans le carnet. Commencez par en ajouter un !
+        {% endif %}
+    </p>
+    {% if not recherche %}
+    <a href="{{ url_for('ajouter') }}" class="btn btn-primary mt-3">
+        <i class="bi bi-plus-circle"></i> Ajouter un contact
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
