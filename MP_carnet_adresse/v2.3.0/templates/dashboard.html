@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de bord - Polyclinique{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-4">
+            <i class="bi bi-speedometer2"></i> Tableau de bord
+        </h1>
+        <p class="text-muted">
+            {% if admin_info.role == 'super_admin' %}
+                Vue d'ensemble de la polyclinique
+            {% else %}
+                Vue de votre service
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+<!-- Statistiques -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-building"></i> Services
+                </h5>
+                <h2 class="card-text">{{ services|length }}</h2>
+                <small>Service(s) actif(s)</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-calendar-check"></i> RDV Total
+                </h5>
+                <h2 class="card-text">{{ total_rdv }}</h2>
+                <small>Rendez-vous pris</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-calendar-day"></i> Aujourd'hui
+                </h5>
+                <h2 class="card-text">{{ rdv_aujourd_hui|length }}</h2>
+                <small>RDV du jour</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-people"></i> Patients
+                </h5>
+                <h2 class="card-text">{{ rdv_aujourd_hui|length }}</h2>
+                <small>À recevoir aujourd'hui</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Services -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-building"></i> Services disponibles
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if services %}
+                <div class="row">
+                    {% for service in services %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="bi bi-hospital"></i> {{ service.nom }}
+                                </h5>
+                                <p class="card-text text-muted small">
+                                    {{ service.description }}
+                                </p>
+                                <p class="mb-0">
+                                    <i class="bi bi-clock"></i> 
+                                    <small>{{ service.horaire_debut }} - {{ service.horaire_fin }}</small>
+                                </p>
+                            </div>
+                            <div class="card-footer">
+                                <a href="{{ url_for('agenda', service_id=service.id) }}" 
+                                   class="btn btn-sm btn-primary w-100">
+                                    <i class="bi bi-calendar-plus"></i> Prendre RDV
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Aucun service disponible
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- RDV du jour -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-calendar-day"></i> Rendez-vous d'aujourd'hui
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if rdv_aujourd_hui %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Heure</th>
+                                <th>Service</th>
+                                <th>Patient</th>
+                                <th>Téléphone</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rdv in rdv_aujourd_hui %}
+                            <tr>
+                                <td><strong>{{ rdv.heure_debut }}</strong></td>
+                                <td>
+                                    <span class="badge bg-primary">{{ rdv.service_nom }}</span>
+                                </td>
+                                <td>{{ rdv.patient_nom }} {{ rdv.patient_prenom }}</td>
+                                <td>{{ rdv.patient_telephone }}</td>
+                                <td>
+                                    {% if rdv.statut == 'confirmé' %}
+                                        <span class="badge bg-success">Confirmé</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ rdv.statut }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Aucun rendez-vous aujourd'hui
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions rapides -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning"></i> Actions rapides
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2 d-md-flex">
+                    <a href="{{ url_for('agenda') }}" class="btn btn-primary">
+                        <i class="bi bi-calendar-plus"></i> Nouveau RDV
+                    </a>
+                    <a href="{{ url_for('mes_rdv') }}" class="btn btn-info">
+                        <i class="bi bi-list-check"></i> Voir tous les RDV
+                    </a>
+                    <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                        <i class="bi bi-people"></i> Gérer les contacts
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

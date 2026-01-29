@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des services - Polyclinique{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1><i class="bi bi-hospital"></i> Gestion des services</h1>
+        <p class="text-muted">Administrez les services et les médecins de la polyclinique</p>
+    </div>
+</div>
+
+<!-- Boutons d'action -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ajouterServiceModal">
+            <i class="bi bi-plus-circle"></i> Ajouter un service
+        </button>
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#ajouterMedecinModal">
+            <i class="bi bi-person-plus"></i> Ajouter un médecin
+        </button>
+    </div>
+</div>
+
+<!-- Liste des services -->
+{% if services %}
+<div class="row">
+    {% for service in services %}
+    <div class="col-md-6 mb-4">
+        <div class="card shadow h-100 border-primary">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-hospital-fill"></i> {{ service.nom }}
+                    </h5>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-warning" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#modifierServiceModal{{ service.id }}">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <a href="{{ url_for('supprimer_service', id=service.id) }}" 
+                           class="btn btn-sm btn-danger"
+                           onclick="return confirm('Supprimer ce service et tous ses médecins ?')">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">{{ service.description }}</p>
+                
+                <h6 class="border-bottom pb-2 mb-3">
+                    <i class="bi bi-people"></i> Médecins ({{ service.nombre_medecins }})
+                </h6>
+                
+                {% if service.medecins %}
+                <div class="list-group">
+                    {% for medecin in service.medecins %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong><i class="bi bi-person-badge"></i> Dr. {{ medecin.nom }}</strong><br>
+                            <small class="text-muted">{{ medecin.specialite }}</small>
+                            {% if medecin.telephone %}
+                            <br><small><i class="bi bi-telephone"></i> {{ medecin.telephone }}</small>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-sm btn-warning" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#modifierMedecinModal{{ medecin.id }}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <a href="{{ url_for('supprimer_medecin', id=medecin.id) }}" 
+                               class="btn btn-sm btn-danger"
+                               onclick="return confirm('Supprimer ce médecin ?')">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Modal modifier médecin -->
+                    <div class="modal fade" id="modifierMedecinModal{{ medecin.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header bg-warning text-dark">
+                                    <h5 class="modal-title">
+                                        <i class="bi bi-pencil"></i> Modifier Dr. {{ medecin.nom }}
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <form method="POST" action="{{ url_for('modifier_medecin', id=medecin.id) }}">
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label for="nom_{{ medecin.id }}" class="form-label">Nom</label>
+                                            <input type="text" class="form-control" 
+                                                   id="nom_{{ medecin.id }}" name="nom" 
+                                                   value="{{ medecin.nom }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="specialite_{{ medecin.id }}" class="form-label">Spécialité</label>
+                                            <input type="text" class="form-control" 
+                                                   id="specialite_{{ medecin.id }}" name="specialite" 
+                                                   value="{{ medecin.specialite }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="telephone_{{ medecin.id }}" class="form-label">Téléphone</label>
+                                            <input type="tel" class="form-control" 
+                                                   id="telephone_{{ medecin.id }}" name="telephone" 
+                                                   value="{{ medecin.telephone }}" maxlength="10">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="email_{{ medecin.id }}" class="form-label">Email</label>
+                                            <input type="email" class="form-control" 
+                                                   id="email_{{ medecin.id }}" name="email" 
+                                                   value="{{ medecin.email }}">
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                        <button type="submit" class="btn btn-warning">
+                                            <i class="bi bi-check"></i> Enregistrer
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center">Aucun médecin dans ce service</p>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-light">
+                <small class="text-muted">
+                    <i class="bi bi-calendar-check"></i> {{ service.nombre_rdv }} rendez-vous ce mois
+                </small>
+            </div>
+        </div>
+
+        <!-- Modal modifier service -->
+        <div class="modal fade" id="modifierServiceModal{{ service.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title">
+                            <i class="bi bi-pencil"></i> Modifier {{ service.nom }}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="POST" action="{{ url_for('modifier_service', id=service.id) }}">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="nom_serv_{{ service.id }}" class="form-label">Nom du service</label>
+                                <input type="text" class="form-control" 
+                                       id="nom_serv_{{ service.id }}" name="nom" 
+                                       value="{{ service.nom }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="description_{{ service.id }}" class="form-label">Description</label>
+                                <textarea class="form-control" 
+                                          id="description_{{ service.id }}" name="description" 
+                                          rows="3" required>{{ service.description }}</textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-check"></i> Enregistrer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info text-center">
+    <i class="bi bi-info-circle" style="font-size: 3rem;"></i>
+    <h4 class="mt-3">Aucun service</h4>
+    <p>Commencez par ajouter un service à la polyclinique.</p>
+</div>
+{% endif %}
+
+<!-- Modal ajouter service -->
+<div class="modal fade" id="ajouterServiceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-circle"></i> Ajouter un service
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('ajouter_service') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nom_service" class="form-label">Nom du service <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="nom_service" name="nom" 
+                               required placeholder="Ex: Cardiologie">
+                    </div>
+                    <div class="mb-3">
+                        <label for="description_service" class="form-label">Description <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="description_service" name="description" 
+                                  rows="3" required placeholder="Décrivez le service..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check"></i> Ajouter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal ajouter médecin -->
+<div class="modal fade" id="ajouterMedecinModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-plus"></i> Ajouter un médecin
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('ajouter_medecin') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="service_id" class="form-label">Service <span class="text-danger">*</span></label>
+                        <select class="form-select" id="service_id" name="service_id" required>
+                            <option value="">-- Sélectionnez un service --</option>
+                            {% for service in services %}
+                            <option value="{{ service.id }}">{{ service.nom }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nom_medecin" class="form-label">Nom <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="nom_medecin" name="nom" 
+                               required placeholder="Ex: BENANI Ahmed">
+                    </div>
+                    <div class="mb-3">
+                        <label for="specialite" class="form-label">Spécialité <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="specialite" name="specialite" 
+                               required placeholder="Ex: Cardiologue">
+                    </div>
+                    <div class="mb-3">
+                        <label for="telephone_medecin" class="form-label">Téléphone</label>
+                        <input type="tel" class="form-control" id="telephone_medecin" name="telephone" 
+                               placeholder="0612345678" maxlength="10">
+                    </div>
+                    <div class="mb-3">
+                        <label for="email_medecin" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email_medecin" name="email" 
+                               placeholder="dr.benani@polyclinique.ma">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check"></i> Ajouter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Retour -->
+<div class="row mt-4">
+    <div class="col-md-12 text-center">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-lg btn-secondary">
+            <i class="bi bi-house"></i> Retour au tableau de bord
+        </a>
+    </div>
+</div>
+{% endblock %}

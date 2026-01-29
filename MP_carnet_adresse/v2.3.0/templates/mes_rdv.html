@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}Mes rendez-vous - Polyclinique{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1><i class="bi bi-calendar-check"></i> Mes rendez-vous</h1>
+        <p class="text-muted">Consultez et gérez vos rendez-vous</p>
+    </div>
+</div>
+
+<!-- Statistiques -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-info shadow">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ stats.a_venir }}</h3>
+                <p class="mb-0">À venir</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-warning shadow">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ stats.en_attente }}</h3>
+                <p class="mb-0">En attente</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-secondary shadow">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ stats.passes }}</h3>
+                <p class="mb-0">Passés</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="btn-group w-100" role="group">
+                    <a href="{{ url_for('mes_rdv', filtre='tous') }}" 
+                       class="btn btn-outline-primary {% if filtre == 'tous' %}active{% endif %}">
+                        <i class="bi bi-list"></i> Tous
+                    </a>
+                    <a href="{{ url_for('mes_rdv', filtre='a_venir') }}" 
+                       class="btn btn-outline-success {% if filtre == 'a_venir' %}active{% endif %}">
+                        <i class="bi bi-calendar-event"></i> À venir
+                    </a>
+                    <a href="{{ url_for('mes_rdv', filtre='en_attente') }}" 
+                       class="btn btn-outline-warning {% if filtre == 'en_attente' %}active{% endif %}">
+                        <i class="bi bi-clock"></i> En attente
+                    </a>
+                    <a href="{{ url_for('mes_rdv', filtre='passes') }}" 
+                       class="btn btn-outline-secondary {% if filtre == 'passes' %}active{% endif %}">
+                        <i class="bi bi-calendar-x"></i> Passés
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Liste des rendez-vous -->
+{% if rendez_vous %}
+<div class="row">
+    {% for rdv in rendez_vous %}
+    <div class="col-md-6 mb-4">
+        <div class="card shadow h-100 {% if rdv.est_passe %}border-secondary{% elif rdv.statut == 'Confirmé' %}border-success{% else %}border-warning{% endif %}">
+            <div class="card-header 
+                {% if rdv.est_passe %}bg-secondary text-white
+                {% elif rdv.statut == 'Confirmé' %}bg-success text-white
+                {% else %}bg-warning text-dark
+                {% endif %}">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0">
+                            <i class="bi bi-calendar-event"></i> 
+                            {{ rdv.date_formatted }}
+                        </h5>
+                        <small>{{ rdv.jour_semaine }}</small>
+                    </div>
+                    <div class="text-end">
+                        <h4 class="mb-0">{{ rdv.heure }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0">
+                    <tr>
+                        <td width="30%"><strong><i class="bi bi-hospital"></i> Service :</strong></td>
+                        <td><span class="badge bg-info">{{ rdv.service_nom }}</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong><i class="bi bi-person-badge"></i> Médecin :</strong></td>
+                        <td>Dr. {{ rdv.medecin_nom }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong><i class="bi bi-person"></i> Patient :</strong></td>
+                        <td>{{ rdv.patient_nom }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong><i class="bi bi-telephone"></i> Téléphone :</strong></td>
+                        <td>{{ rdv.patient_telephone }}</td>
+                    </tr>
+                    {% if rdv.motif %}
+                    <tr>
+                        <td><strong><i class="bi bi-card-text"></i> Motif :</strong></td>
+                        <td>{{ rdv.motif }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td><strong><i class="bi bi-info-circle"></i> Statut :</strong></td>
+                        <td>
+                            {% if rdv.est_passe %}
+                            <span class="badge bg-secondary">Passé</span>
+                            {% elif rdv.statut == 'Confirmé' %}
+                            <span class="badge bg-success">Confirmé</span>
+                            {% elif rdv.statut == 'En attente' %}
+                            <span class="badge bg-warning text-dark">En attente</span>
+                            {% else %}
+                            <span class="badge bg-info">{{ rdv.statut }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="card-footer bg-light">
+                <div class="d-flex gap-2">
+                    {% if not rdv.est_passe %}
+                    <button type="button" class="btn btn-sm btn-info flex-fill" 
+                            data-bs-toggle="modal" data-bs-target="#detailsModal{{ rdv.id }}">
+                        <i class="bi bi-eye"></i> Détails
+                    </button>
+                    
+                    {% if rdv.peut_modifier %}
+                    <a href="{{ url_for('modifier_rdv', id=rdv.id) }}" 
+                       class="btn btn-sm btn-warning flex-fill">
+                        <i class="bi bi-pencil"></i> Modifier
+                    </a>
+                    {% endif %}
+                    
+                    {% if rdv.peut_annuler %}
+                    <a href="{{ url_for('annuler_rdv', id=rdv.id) }}" 
+                       class="btn btn-sm btn-danger flex-fill"
+                       onclick="return confirm('Voulez-vous vraiment annuler ce rendez-vous ?')">
+                        <i class="bi bi-x-circle"></i> Annuler
+                    </a>
+                    {% endif %}
+                    {% else %}
+                    <button class="btn btn-sm btn-secondary flex-fill" disabled>
+                        <i class="bi bi-clock-history"></i> Rendez-vous passé
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal détails -->
+        <div class="modal fade" id="detailsModal{{ rdv.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-info text-white">
+                        <h5 class="modal-title">
+                            <i class="bi bi-calendar-check"></i> Détails complets
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h6 class="border-bottom pb-2 mb-3">Informations du rendez-vous</h6>
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Date :</th>
+                                <td>{{ rdv.date_formatted }} ({{ rdv.jour_semaine }})</td>
+                            </tr>
+                            <tr>
+                                <th>Heure :</th>
+                                <td><strong>{{ rdv.heure }}</strong></td>
+                            </tr>
+                            <tr>
+                                <th>Durée :</th>
+                                <td>30 minutes</td>
+                            </tr>
+                        </table>
+
+                        <h6 class="border-bottom pb-2 mb-3 mt-4">Informations médicales</h6>
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Service :</th>
+                                <td><span class="badge bg-info">{{ rdv.service_nom }}</span></td>
+                            </tr>
+                            <tr>
+                                <th>Médecin :</th>
+                                <td>Dr. {{ rdv.medecin_nom }}</td>
+                            </tr>
+                            <tr>
+                                <th>Spécialité :</th>
+                                <td>{{ rdv.medecin_specialite }}</td>
+                            </tr>
+                            {% if rdv.motif %}
+                            <tr>
+                                <th>Motif :</th>
+                                <td>{{ rdv.motif }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+
+                        <h6 class="border-bottom pb-2 mb-3 mt-4">Informations patient</h6>
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Nom complet :</th>
+                                <td><strong>{{ rdv.patient_nom }}</strong></td>
+                            </tr>
+                            <tr>
+                                <th>Téléphone :</th>
+                                <td>{{ rdv.patient_telephone }}</td>
+                            </tr>
+                            {% if rdv.patient_email %}
+                            <tr>
+                                <th>Email :</th>
+                                <td>{{ rdv.patient_email }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+
+                        {% if rdv.notes %}
+                        <div class="alert alert-info mt-3">
+                            <strong><i class="bi bi-info-circle"></i> Notes :</strong><br>
+                            {{ rdv.notes }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if pagination.total_pages > 1 %}
+<div class="row">
+    <div class="col-md-12">
+        <nav>
+            <ul class="pagination justify-content-center">
+                {% if pagination.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('mes_rdv', page=pagination.prev_page, filtre=filtre) }}">
+                        Précédent
+                    </a>
+                </li>
+                {% endif %}
+
+                {% for page_num in pagination.pages %}
+                <li class="page-item {% if page_num == pagination.current_page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('mes_rdv', page=page_num, filtre=filtre) }}">
+                        {{ page_num }}
+                    </a>
+                </li>
+                {% endfor %}
+
+                {% if pagination.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('mes_rdv', page=pagination.next_page, filtre=filtre) }}">
+                        Suivant
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle" style="font-size: 3rem;"></i>
+            <h4 class="mt-3">Aucun rendez-vous trouvé</h4>
+            <p class="mb-3">Vous n'avez pas encore de rendez-vous {% if filtre != 'tous' %}{{ filtre }}{% endif %}.</p>
+            <a href="{{ url_for('prendre_rdv') }}" class="btn btn-primary btn-lg">
+                <i class="bi bi-calendar-plus"></i> Prendre un rendez-vous
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Actions -->
+<div class="row mt-4">
+    <div class="col-md-12 text-center">
+        <a href="{{ url_for('prendre_rdv') }}" class="btn btn-lg btn-primary">
+            <i class="bi bi-calendar-plus"></i> Nouveau rendez-vous
+        </a>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-lg btn-secondary">
+            <i class="bi bi-house"></i> Tableau de bord
+        </a>
+    </div>
+</div>
+{% endblock %}

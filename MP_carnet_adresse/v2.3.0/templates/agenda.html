@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Agenda - Polyclinique{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1><i class="bi bi-calendar-check"></i> Agenda des rendez-vous</h1>
+        <p class="text-muted">Sélectionnez un service et une date pour voir les créneaux disponibles</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Colonne gauche : Sélection -->
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-building"></i> Sélectionner un service</h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('agenda') }}" id="formService">
+                    <div class="mb-3">
+                        <label for="service_id" class="form-label">Service médical</label>
+                        <select class="form-select" id="service_id" name="service_id" required onchange="this.form.submit()">
+                            <option value="">-- Choisir un service --</option>
+                            {% for service in services %}
+                            <option value="{{ service.id }}" 
+                                    {% if service_selectionne and service.id == service_selectionne.id %}selected{% endif %}>
+                                {{ service.nom }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    {% if service_selectionne %}
+                    <div class="alert alert-info mb-3">
+                        <strong>{{ service_selectionne.nom }}</strong><br>
+                        <small>{{ service_selectionne.description }}</small><br>
+                        <i class="bi bi-clock"></i> 
+                        <small>{{ service_selectionne.horaire_debut }} - {{ service_selectionne.horaire_fin }}</small>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="date" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="date" name="date" 
+                               value="{{ date_selectionnee }}" 
+                               min="{{ date_selectionnee }}"
+                               onchange="this.form.submit()">
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Légende -->
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Légende</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <span class="badge bg-success" style="width: 20px; height: 20px; display: inline-block;"></span>
+                    <span class="ms-2">Disponible</span>
+                </div>
+                <div>
+                    <span class="badge bg-secondary" style="width: 20px; height: 20px; display: inline-block;"></span>
+                    <span class="ms-2">Réservé</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Colonne droite : Créneaux -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock"></i> Créneaux disponibles
+                    {% if date_selectionnee %}
+                        - {{ date_selectionnee }}
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if not service_selectionne %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> 
+                        Veuillez sélectionner un service pour voir les créneaux
+                    </div>
+                {% elif not creneaux %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> 
+                        Aucun créneau disponible pour cette date
+                    </div>
+                {% else %}
+                    <div class="row g-2">
+                        {% for heure_debut, heure_fin, disponible in creneaux %}
+                        <div class="col-md-4 col-sm-6">
+                            {% if disponible %}
+                                <a href="{{ url_for('prendre_rdv', 
+                                          service_id=service_selectionne.id,
+                                          date=date_selectionnee,
+                                          heure_debut=heure_debut,
+                                          heure_fin=heure_fin) }}" 
+                                   class="btn btn-success w-100 btn-creneau">
+                                    <i class="bi bi-check-circle"></i><br>
+                                    <strong>{{ heure_debut }}</strong><br>
+                                    <small>{{ heure_fin }}</small>
+                                </a>
+                            {% else %}
+                                <button class="btn btn-secondary w-100 btn-creneau" disabled>
+                                    <i class="bi bi-x-circle"></i><br>
+                                    <strong>{{ heure_debut }}</strong><br>
+                                    <small>Réservé</small>
+                                </button>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.btn-creneau {
+    height: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.btn-creneau:hover:not(:disabled) {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.btn-creneau strong {
+    font-size: 1.2rem;
+}
+</style>
+{% endblock %}

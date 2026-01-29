@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des administrateurs - Polyclinique{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1><i class="bi bi-people"></i> Gestion des administrateurs</h1>
+        <p class="text-muted">Gérez les comptes administrateurs de la polyclinique</p>
+    </div>
+</div>
+
+<!-- Informations -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            <strong>Hiérarchie des rôles :</strong>
+            <ul class="mb-0 mt-2">
+                <li><strong>Directeur (Super-Admin)</strong> : Accès complet à toutes les fonctionnalités</li>
+                <li><strong>Responsable de Service (Admin)</strong> : Gestion de son service uniquement</li>
+                <li><strong>Médecin</strong> : Consultation de son agenda</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiques -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-danger shadow">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ stats.nb_directeurs }}</h3>
+                <p class="mb-0">Directeur(s)</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-warning shadow">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ stats.nb_responsables }}</h3>
+                <p class="mb-0">Responsable(s)</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-info shadow">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ stats.nb_medecins }}</h3>
+                <p class="mb-0">Médecin(s)</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bouton ajouter -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#ajouterAdminModal">
+            <i class="bi bi-person-plus"></i> Ajouter un administrateur
+        </button>
+    </div>
+</div>
+
+<!-- Liste des administrateurs -->
+{% if admins %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-list"></i> Liste des administrateurs</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="5%">#</th>
+                                <th><i class="bi bi-person"></i> Nom d'utilisateur</th>
+                                <th><i class="bi bi-shield"></i> Rôle</th>
+                                <th><i class="bi bi-hospital"></i> Service</th>
+                                <th><i class="bi bi-envelope"></i> Email</th>
+                                <th><i class="bi bi-calendar"></i> Créé le</th>
+                                <th class="text-center"><i class="bi bi-gear"></i> Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for admin in admins %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>
+                                    <strong>{{ admin.nom_utilisateur }}</strong>
+                                    {% if admin.nom_utilisateur == username %}
+                                    <span class="badge bg-success">Vous</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if admin.role == 'Directeur' %}
+                                    <span class="badge bg-danger">{{ admin.role }}</span>
+                                    {% elif admin.role == 'Responsable' %}
+                                    <span class="badge bg-warning text-dark">{{ admin.role }}</span>
+                                    {% else %}
+                                    <span class="badge bg-info">{{ admin.role }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if admin.service_nom %}
+                                    <span class="badge bg-secondary">{{ admin.service_nom }}</span>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ admin.email or '-' }}</td>
+                                <td><small>{{ admin.date_creation }}</small></td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button type="button" class="btn btn-info" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#detailsModal{{ admin.id }}"
+                                                title="Voir détails">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        
+                                        {% if admin.nom_utilisateur != 'admin' and admin.nom_utilisateur != username %}
+                                        <button type="button" class="btn btn-warning" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#modifierModal{{ admin.id }}"
+                                                title="Modifier">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        
+                                        <a href="{{ url_for('supprimer_admin', id=admin.id) }}" 
+                                           class="btn btn-danger"
+                                           onclick="return confirm('Supprimer cet administrateur ?')"
+                                           title="Supprimer">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Modal détails -->
+                            <div class="modal fade" id="detailsModal{{ admin.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-info text-white">
+                                            <h5 class="modal-title">
+                                                <i class="bi bi-person-circle"></i> {{ admin.nom_utilisateur }}
+                                            </h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <th width="40%">Nom d'utilisateur :</th>
+                                                    <td><strong>{{ admin.nom_utilisateur }}</strong></td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Rôle :</th>
+                                                    <td>
+                                                        {% if admin.role == 'Directeur' %}
+                                                        <span class="badge bg-danger">{{ admin.role }}</span>
+                                                        {% elif admin.role == 'Responsable' %}
+                                                        <span class="badge bg-warning text-dark">{{ admin.role }}</span>
+                                                        {% else %}
+                                                        <span class="badge bg-info">{{ admin.role }}</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% if admin.service_nom %}
+                                                <tr>
+                                                    <th>Service :</th>
+                                                    <td><span class="badge bg-secondary">{{ admin.service_nom }}</span></td>
+                                                </tr>
+                                                {% endif %}
+                                                <tr>
+                                                    <th>Email :</th>
+                                                    <td>{{ admin.email or 'Non renseigné' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Date de création :</th>
+                                                    <td>{{ admin.date_creation }}</td>
+                                                </tr>
+                                                {% if admin.derniere_connexion %}
+                                                <tr>
+                                                    <th>Dernière connexion :</th>
+                                                    <td>{{ admin.derniere_connexion }}</td>
+                                                </tr>
+                                                {% endif %}
+                                            </table>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Modal modifier -->
+                            {% if admin.nom_utilisateur != 'admin' and admin.nom_utilisateur != username %}
+                            <div class="modal fade" id="modifierModal{{ admin.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-warning text-dark">
+                                            <h5 class="modal-title">
+                                                <i class="bi bi-pencil"></i> Modifier {{ admin.nom_utilisateur }}
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form method="POST" action="{{ url_for('modifier_admin', id=admin.id) }}">
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label for="role_{{ admin.id }}" class="form-label">Rôle</label>
+                                                    <select class="form-select" id="role_{{ admin.id }}" name="role" required>
+                                                        <option value="Responsable" {% if admin.role == 'Responsable' %}selected{% endif %}>
+                                                            Responsable de Service
+                                                        </option>
+                                                        <option value="Médecin" {% if admin.role == 'Médecin' %}selected{% endif %}>
+                                                            Médecin
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="service_{{ admin.id }}" class="form-label">Service</label>
+                                                    <select class="form-select" id="service_{{ admin.id }}" name="service_id">
+                                                        <option value="">Aucun</option>
+                                                        {% for service in services %}
+                                                        <option value="{{ service.id }}" 
+                                                            {% if admin.service_id == service.id %}selected{% endif %}>
+                                                            {{ service.nom }}
+                                                        </option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="email_{{ admin.id }}" class="form-label">Email</label>
+                                                    <input type="email" class="form-control" 
+                                                           id="email_{{ admin.id }}" name="email" 
+                                                           value="{{ admin.email }}">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="nouveau_mdp_{{ admin.id }}" class="form-label">
+                                                        Nouveau mot de passe (laisser vide pour ne pas changer)
+                                                    </label>
+                                                    <input type="password" class="form-control" 
+                                                           id="nouveau_mdp_{{ admin.id }}" name="nouveau_mdp"
+                                                           minlength="6">
+                                                    <small class="text-muted">Minimum 6 caractères</small>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                <button type="submit" class="btn btn-warning">
+                                                    <i class="bi bi-check"></i> Enregistrer
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info text-center">
+    <i class="bi bi-info-circle" style="font-size: 3rem;"></i>
+    <h4 class="mt-3">Aucun administrateur</h4>
+    <p>Commencez par ajouter des administrateurs.</p>
+</div>
+{% endif %}
+
+<!-- Modal ajouter administrateur -->
+<div class="modal fade" id="ajouterAdminModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-plus"></i> Ajouter un administrateur
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('ajouter_admin') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nom_utilisateur" class="form-label">
+                            Nom d'utilisateur <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" id="nom_utilisateur" name="nom_utilisateur" 
+                               required placeholder="Ex: responsable.cardio">
+                    </div>
+                    <div class="mb-3">
+                        <label for="mot_de_passe" class="form-label">
+                            Mot de passe <span class="text-danger">*</span>
+                        </label>
+                        <input type="password" class="form-control" id="mot_de_passe" name="mot_de_passe" 
+                               required minlength="6">
+                        <small class="text-muted">Minimum 6 caractères</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="role" class="form-label">
+                            Rôle <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select" id="role" name="role" required>
+                            <option value="">-- Sélectionnez un rôle --</option>
+                            <option value="Responsable">Responsable de Service (Admin)</option>
+                            <option value="Médecin">Médecin</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="service_id" class="form-label">Service (optionnel pour Responsable)</label>
+                        <select class="form-select" id="service_id" name="service_id">
+                            <option value="">Aucun</option>
+                            {% for service in services %}
+                            <option value="{{ service.id }}">{{ service.nom }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">Un Responsable peut gérer un service spécifique</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               placeholder="admin@polyclinique.ma">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check"></i> Créer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Retour -->
+<div class="row mt-4">
+    <div class="col-md-12 text-center">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-lg btn-secondary">
+            <i class="bi bi-house"></i> Retour au tableau de bord
+        </a>
+    </div>
+</div>
+{% endblock %}

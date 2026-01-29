@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+
+{% block title %}Prendre un rendez-vous - Polyclinique{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-calendar-plus"></i> Prendre un rendez-vous
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('prendre_rdv') }}" id="formRDV">
+                    
+                    <!-- Étape 1: Informations patient -->
+                    <div id="etape1">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="bi bi-person-badge"></i> Étape 1 : Informations du patient
+                        </h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="nom" class="form-label">
+                                    <i class="bi bi-person"></i> Nom <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="nom" name="nom" 
+                                       required autofocus placeholder="Ex: ALAMI"
+                                       oninput="this.value = this.value.toUpperCase()">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="prenom" class="form-label">
+                                    <i class="bi bi-person"></i> Prénom <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="prenom" name="prenom" 
+                                       required placeholder="Ex: AHMED"
+                                       oninput="this.value = this.value.toUpperCase()">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="telephone" class="form-label">
+                                    <i class="bi bi-telephone"></i> Téléphone <span class="text-danger">*</span>
+                                </label>
+                                <input type="tel" class="form-control" id="telephone" name="telephone" 
+                                       required placeholder="0612345678" maxlength="10">
+                                <small class="text-muted">10 chiffres</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">
+                                    <i class="bi bi-envelope"></i> Email
+                                </label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       placeholder="patient@email.com">
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-3">
+                            <button type="button" class="btn btn-primary btn-lg" onclick="allerEtape2()">
+                                Suivant <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Étape 2: Choix du service et médecin -->
+                    <div id="etape2" style="display: none;">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="bi bi-hospital"></i> Étape 2 : Service et médecin
+                        </h5>
+
+                        <div class="mb-3">
+                            <label for="service" class="form-label">
+                                <i class="bi bi-building"></i> Service <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select form-select-lg" id="service" name="service" 
+                                    required onchange="chargerMedecins()">
+                                <option value="">-- Sélectionnez un service --</option>
+                                {% for service in services %}
+                                <option value="{{ service.id }}">
+                                    {{ service.nom }} - {{ service.description }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3" id="div-medecin" style="display: none;">
+                            <label for="medecin" class="form-label">
+                                <i class="bi bi-person-badge"></i> Médecin <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select form-select-lg" id="medecin" name="medecin" required>
+                                <option value="">-- Sélectionnez un médecin --</option>
+                            </select>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-3">
+                            <button type="button" class="btn btn-primary btn-lg" onclick="allerEtape3()">
+                                Suivant <i class="bi bi-arrow-right"></i>
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="allerEtape1()">
+                                <i class="bi bi-arrow-left"></i> Retour
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Étape 3: Choix de la date et l'heure (créneaux de 30 min) -->
+                    <div id="etape3" style="display: none;">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="bi bi-calendar-date"></i> Étape 3 : Date et heure du rendez-vous
+                        </h5>
+
+                        <div class="mb-3">
+                            <label for="date" class="form-label">
+                                <i class="bi bi-calendar"></i> Date <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" class="form-control form-control-lg" id="date" name="date" 
+                                   required min="{{ date_min }}" onchange="chargerCreneaux()">
+                        </div>
+
+                        <div class="mb-3" id="div-creneaux" style="display: none;">
+                            <label class="form-label">
+                                <i class="bi bi-clock"></i> Créneaux disponibles (30 minutes)
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div id="creneaux-container" class="row g-2">
+                                <!-- Les créneaux seront chargés dynamiquement -->
+                            </div>
+                            <input type="hidden" id="heure" name="heure" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="motif" class="form-label">
+                                <i class="bi bi-card-text"></i> Motif de consultation
+                            </label>
+                            <textarea class="form-control" id="motif" name="motif" 
+                                      rows="3" placeholder="Décrivez brièvement le motif de votre visite..."></textarea>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-3">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-check-circle"></i> Confirmer le rendez-vous
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="allerEtape2()">
+                                <i class="bi bi-arrow-left"></i> Retour
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle"></i> Annuler et retourner au tableau de bord
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+// Données des médecins par service (seront injectées depuis Flask)
+const medecinsByService = {{ medecins_json|safe }};
+
+// Navigation entre les étapes
+function allerEtape1() {
+    document.getElementById('etape2').style.display = 'none';
+    document.getElementById('etape3').style.display = 'none';
+    document.getElementById('etape1').style.display = 'block';
+}
+
+function allerEtape2() {
+    // Validation de l'étape 1
+    const nom = document.getElementById('nom').value;
+    const prenom = document.getElementById('prenom').value;
+    const telephone = document.getElementById('telephone').value;
+
+    if (!nom || !prenom || !telephone) {
+        alert('Veuillez remplir tous les champs obligatoires !');
+        return;
+    }
+
+    if (telephone.replace(/\D/g, '').length !== 10) {
+        alert('Le numéro de téléphone doit contenir 10 chiffres !');
+        return;
+    }
+
+    document.getElementById('etape1').style.display = 'none';
+    document.getElementById('etape3').style.display = 'none';
+    document.getElementById('etape2').style.display = 'block';
+}
+
+function allerEtape3() {
+    // Validation de l'étape 2
+    const service = document.getElementById('service').value;
+    const medecin = document.getElementById('medecin').value;
+
+    if (!service || !medecin) {
+        alert('Veuillez sélectionner un service et un médecin !');
+        return;
+    }
+
+    document.getElementById('etape1').style.display = 'none';
+    document.getElementById('etape2').style.display = 'none';
+    document.getElementById('etape3').style.display = 'block';
+}
+
+// Charger les médecins selon le service
+function chargerMedecins() {
+    const serviceId = document.getElementById('service').value;
+    const medecinSelect = document.getElementById('medecin');
+    const divMedecin = document.getElementById('div-medecin');
+
+    if (!serviceId) {
+        divMedecin.style.display = 'none';
+        return;
+    }
+
+    // Vider le select
+    medecinSelect.innerHTML = '<option value="">-- Sélectionnez un médecin --</option>';
+
+    // Ajouter les médecins du service
+    const medecins = medecinsByService[serviceId] || [];
+    medecins.forEach(medecin => {
+        const option = document.createElement('option');
+        option.value = medecin.id;
+        option.textContent = `Dr. ${medecin.nom} - ${medecin.specialite}`;
+        medecinSelect.appendChild(option);
+    });
+
+    divMedecin.style.display = 'block';
+}
+
+// Charger les créneaux disponibles
+function chargerCreneaux() {
+    const date = document.getElementById('date').value;
+    const medecin = document.getElementById('medecin').value;
+    const service = document.getElementById('service').value;
+
+    if (!date || !medecin || !service) {
+        return;
+    }
+
+    // Appel AJAX pour récupérer les créneaux disponibles
+    fetch(`/api/creneaux?date=${date}&medecin=${medecin}&service=${service}`)
+        .then(response => response.json())
+        .then(data => {
+            afficherCreneaux(data.creneaux, data.creneaux_occupes);
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            alert('Erreur lors du chargement des créneaux');
+        });
+}
+
+// Afficher les créneaux (30 minutes)
+function afficherCreneaux(creneaux, creneauxOccupes) {
+    const container = document.getElementById('creneaux-container');
+    const divCreneaux = document.getElementById('div-creneaux');
+    
+    container.innerHTML = '';
+
+    creneaux.forEach(creneau => {
+        const isOccupe = creneauxOccupes.includes(creneau);
+        const col = document.createElement('div');
+        col.className = 'col-md-3 col-sm-4 col-6';
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `btn btn-${isOccupe ? 'secondary' : 'outline-primary'} w-100`;
+        btn.textContent = creneau;
+        btn.disabled = isOccupe;
+
+        if (!isOccupe) {
+            btn.onclick = function() {
+                // Désélectionner tous les autres boutons
+                document.querySelectorAll('#creneaux-container .btn').forEach(b => {
+                    b.classList.remove('btn-success');
+                    b.classList.add('btn-outline-primary');
+                });
+                // Sélectionner ce créneau
+                this.classList.remove('btn-outline-primary');
+                this.classList.add('btn-success');
+                document.getElementById('heure').value = creneau;
+            };
+        } else {
+            btn.innerHTML = `${creneau}<br><small>(Occupé)</small>`;
+        }
+
+        col.appendChild(btn);
+        container.appendChild(col);
+    });
+
+    divCreneaux.style.display = 'block';
+}
+
+// Validation du formulaire
+document.getElementById('formRDV').addEventListener('submit', function(e) {
+    const heure = document.getElementById('heure').value;
+    if (!heure) {
+        e.preventDefault();
+        alert('Veuillez sélectionner un créneau horaire !');
+    }
+});
+
+// Date minimale = aujourd'hui
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('date').setAttribute('min', today);
+});
+</script>
+
+<style>
+#creneaux-container .btn {
+    min-height: 50px;
+    font-size: 1rem;
+}
+</style>
+{% endblock %}
