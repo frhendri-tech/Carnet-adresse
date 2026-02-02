@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Envoyer un email - Polyclinique{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1><i class="bi bi-envelope-fill"></i> Envoyer un email</h1>
+        <p class="text-muted">Envoyer un email à {{ contact.nom }} {{ contact.prenom }}</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-person-circle"></i> Destinataire</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0">
+                    <tr>
+                        <th width="30%">Nom complet :</th>
+                        <td><strong>{{ contact.nom }} {{ contact.prenom }}</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Email :</th>
+                        <td>{{ contact.email }}</td>
+                    </tr>
+                    <tr>
+                        <th>Téléphone :</th>
+                        <td>{{ contact.telephone }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-envelope"></i> Composer le message</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('envoyer_email', nom=contact.nom, prenom=contact.prenom) }}">
+                    <div class="mb-3">
+                        <label for="sujet" class="form-label">Sujet <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="sujet" name="sujet" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="message" class="form-label">Message <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="message" name="message" rows="10" required></textarea>
+                        <small class="text-muted">Écrivez votre message ici</small>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>Note :</strong> La fonctionnalité d'envoi d'email nécessite une configuration SMTP.
+                        Veuillez configurer les paramètres email dans le fichier app.py.
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send"></i> Envoyer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

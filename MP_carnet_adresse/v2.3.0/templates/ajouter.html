@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Ajouter un contact - Polyclinique{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1><i class="bi bi-person-plus-fill"></i> Ajouter un contact</h1>
+        <p class="text-muted">Remplissez les informations du nouveau contact</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-plus"></i> Nouveau contact</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('ajouter') }}">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="nom" class="form-label">Nom <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="nom" name="nom" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="prenom" class="form-label">Prénom <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="prenom" name="prenom" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="telephone" class="form-label">Téléphone <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="telephone" name="telephone" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="adresse" class="form-label">Adresse</label>
+                        <input type="text" class="form-control" id="adresse" name="adresse">
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="fonction" class="form-label">Fonction</label>
+                            <input type="text" class="form-control" id="fonction" name="fonction">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="entreprise" class="form-label">Entreprise</label>
+                            <input type="text" class="form-control" id="entreprise" name="entreprise">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="categorie" class="form-label">Catégorie</label>
+                        <select class="form-select" id="categorie" name="categorie">
+                            <option value="Personnel">Personnel</option>
+                            <option value="Entreprise">Entreprise</option>
+                            <option value="Client">Client</option>
+                            <option value="Fournisseur">Fournisseur</option>
+                        </select>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Ajouter
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

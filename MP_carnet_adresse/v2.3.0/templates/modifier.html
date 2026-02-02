@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Modifier un contact - Polyclinique{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1><i class="bi bi-pencil-square"></i> Modifier un contact</h1>
+        <p class="text-muted">Modifiez les informations du contact</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-pencil"></i> Éditer le contact</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('modifier', nom=contact.nom, prenom=contact.prenom) }}">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="nom" class="form-label">Nom <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="nom" name="nom" value="{{ contact.nom }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="prenom" class="form-label">Prénom <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="prenom" name="prenom" value="{{ contact.prenom }}" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ contact.email }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="telephone" class="form-label">Téléphone <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="telephone" name="telephone" value="{{ contact.telephone }}" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="adresse" class="form-label">Adresse</label>
+                        <input type="text" class="form-control" id="adresse" name="adresse" value="{{ contact.adresse or '' }}">
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="fonction" class="form-label">Fonction</label>
+                            <input type="text" class="form-control" id="fonction" name="fonction" value="{{ contact.fonction or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="entreprise" class="form-label">Entreprise</label>
+                            <input type="text" class="form-control" id="entreprise" name="entreprise" value="{{ contact.entreprise or '' }}">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="categorie" class="form-label">Catégorie</label>
+                        <select class="form-select" id="categorie" name="categorie">
+                            <option value="Personnel" {% if contact.categorie == 'Personnel' %}selected{% endif %}>Personnel</option>
+                            <option value="Entreprise" {% if contact.categorie == 'Entreprise' %}selected{% endif %}>Entreprise</option>
+                            <option value="Client" {% if contact.categorie == 'Client' %}selected{% endif %}>Client</option>
+                            <option value="Fournisseur" {% if contact.categorie == 'Fournisseur' %}selected{% endif %}>Fournisseur</option>
+                        </select>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Annuler
+                        </a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-check-circle"></i> Enregistrer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

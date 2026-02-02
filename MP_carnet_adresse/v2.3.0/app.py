@@ -142,6 +142,33 @@ def index():
     contacts_tries = sorted(carnet.contacts, key=lambda c: (c.categorie, c.nom.lower(), c.prenom.lower()))
     return render_template('index.html', contacts=contacts_tries, admin_info=session['admin_info'])
 
+@app.route('/rechercher')
+@login_required
+def rechercher():
+    """Rechercher des contacts"""
+    query = request.args.get('q', '').strip().lower()
+
+    if query:
+        # Rechercher dans nom, prénom, email, téléphone
+        resultats = [c for c in carnet.contacts if
+                     query in c.nom.lower() or
+                     query in c.prenom.lower() or
+                     query in c.email.lower() or
+                     query in c.telephone.lower()]
+    else:
+        resultats = carnet.contacts
+
+    contacts_tries = sorted(resultats, key=lambda c: (c.categorie, c.nom.lower(), c.prenom.lower()))
+    return render_template('index.html', contacts=contacts_tries, admin_info=session['admin_info'], recherche=query)
+
+@app.route('/filtrer/<categorie>')
+@login_required
+def filtrer_categorie(categorie):
+    """Filtrer les contacts par catégorie"""
+    contacts_filtres = [c for c in carnet.contacts if c.categorie == categorie]
+    contacts_tries = sorted(contacts_filtres, key=lambda c: (c.nom.lower(), c.prenom.lower()))
+    return render_template('index.html', contacts=contacts_tries, admin_info=session['admin_info'], categorie_filtree=categorie)
+
 @app.route('/ajouter', methods=['GET', 'POST'])
 @login_required
 def ajouter():
@@ -211,8 +238,25 @@ def supprimer(nom, prenom):
         flash(f'Contact supprimé ! 🗑️', 'success')
     else:
         flash('Erreur lors de la suppression.', 'danger')
-    
+
     return redirect(url_for('index'))
+
+@app.route('/whatsapp/<nom>/<prenom>')
+@login_required
+def whatsapp(nom, prenom):
+    """Ouvrir WhatsApp avec le contact"""
+    contact = carnet.rechercher_contact(nom, prenom)
+
+    if not contact:
+        flash('Contact introuvable !', 'danger')
+        return redirect(url_for('index'))
+
+    # Formater le numéro de téléphone pour WhatsApp (supprimer espaces et caractères spéciaux)
+    telephone = contact.telephone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+
+    # Rediriger vers WhatsApp Web
+    whatsapp_url = f'https://wa.me/{telephone}'
+    return redirect(whatsapp_url)
 
 # ==================== AGENDA & RENDEZ-VOUS ====================
 
@@ -311,7 +355,7 @@ def prendre_rdv():
 def mes_rdv():
     """Liste des rendez-vous"""
     admin_info = session['admin_info']
-    
+
     if auth.est_super_admin(admin_info):
         # Super-admin voit tous les RDV
         today = date.today().strftime('%Y-%m-%d')
@@ -323,10 +367,18 @@ def mes_rdv():
             rdv_list = rdv_manager.obtenir_rendez_vous_par_service(service_id)
         else:
             rdv_list = []
-    
+
+    # Calculer les statistiques
+    stats = {
+        'a_venir': len([rdv for rdv in rdv_list if rdv.get('statut') in ['confirmé', 'en_attente']]),
+        'en_attente': len([rdv for rdv in rdv_list if rdv.get('statut') == 'en_attente']),
+        'passes': len([rdv for rdv in rdv_list if rdv.get('statut') == 'passé'])
+    }
+
     return render_template('mes_rdv.html',
                          admin_info=admin_info,
-                         rendez_vous=rdv_list)
+                         rendez_vous=rdv_list,
+                         stats=stats)
 
 @app.route('/annuler_rdv/<int:rdv_id>')
 @login_required
@@ -336,7 +388,20 @@ def annuler_rdv(rdv_id):
         flash('Rendez-vous annulé avec succès !', 'success')
     else:
         flash('Erreur lors de l\'annulation.', 'danger')
-    
+
+    return redirect(url_for('mes_rdv'))
+
+@app.route('/modifier_rdv/<int:id>', methods=['GET', 'POST'])
+@login_required
+def modifier_rdv(id):
+    """Modifier un rendez-vous"""
+    if request.method == 'POST':
+        # Implémenter la logique de modification
+        flash('Fonctionnalité de modification en cours de développement', 'info')
+        return redirect(url_for('mes_rdv'))
+
+    # GET - afficher le formulaire
+    flash('Fonctionnalité de modification en cours de développement', 'info')
     return redirect(url_for('mes_rdv'))
 
 # ==================== GESTION DES SERVICES (Super-Admin) ====================
@@ -347,11 +412,53 @@ def gestion_services():
     """Gestion des services (Super-admin uniquement)"""
     services_list = services.services
     admins_list = auth.lister_admins()
-    
+
     return render_template('gestion_services.html',
                          admin_info=session['admin_info'],
                          services=services_list,
                          admins=admins_list)
+
+@app.route('/ajouter_service', methods=['POST'])
+@super_admin_required
+def ajouter_service():
+    """Ajouter un service"""
+    flash('Fonctionnalité d\'ajout de service en cours de développement', 'info')
+    return redirect(url_for('gestion_services'))
+
+@app.route('/modifier_service/<int:id>', methods=['POST'])
+@super_admin_required
+def modifier_service(id):
+    """Modifier un service"""
+    flash('Fonctionnalité de modification de service en cours de développement', 'info')
+    return redirect(url_for('gestion_services'))
+
+@app.route('/supprimer_service/<int:id>')
+@super_admin_required
+def supprimer_service(id):
+    """Supprimer un service"""
+    flash('Fonctionnalité de suppression de service en cours de développement', 'info')
+    return redirect(url_for('gestion_services'))
+
+@app.route('/ajouter_medecin', methods=['POST'])
+@super_admin_required
+def ajouter_medecin():
+    """Ajouter un médecin"""
+    flash('Fonctionnalité d\'ajout de médecin en cours de développement', 'info')
+    return redirect(url_for('gestion_services'))
+
+@app.route('/modifier_medecin/<int:id>', methods=['POST'])
+@super_admin_required
+def modifier_medecin(id):
+    """Modifier un médecin"""
+    flash('Fonctionnalité de modification de médecin en cours de développement', 'info')
+    return redirect(url_for('gestion_services'))
+
+@app.route('/supprimer_medecin/<int:id>')
+@super_admin_required
+def supprimer_medecin(id):
+    """Supprimer un médecin"""
+    flash('Fonctionnalité de suppression de médecin en cours de développement', 'info')
+    return redirect(url_for('gestion_services'))
 
 @app.route('/gestion_admins')
 @super_admin_required
@@ -359,11 +466,61 @@ def gestion_admins():
     """Gestion des administrateurs"""
     admins_list = auth.lister_admins()
     services_list = services.obtenir_services_actifs()
-    
+
+    # Calculer les statistiques
+    stats = {
+        'nb_directeurs': len([a for a in admins_list if a.get('role') == 'super_admin' or a.get('role') == 'Directeur']),
+        'nb_responsables': len([a for a in admins_list if a.get('role') == 'admin' or a.get('role') == 'Responsable']),
+        'nb_medecins': len([a for a in admins_list if a.get('role') == 'Médecin' or a.get('role') == 'medecin'])
+    }
+
     return render_template('gestion_admins.html',
                          admin_info=session['admin_info'],
                          admins=admins_list,
-                         services=services_list)
+                         services=services_list,
+                         stats=stats)
+
+@app.route('/ajouter_admin', methods=['POST'])
+@super_admin_required
+def ajouter_admin():
+    """Ajouter un administrateur"""
+    nom_utilisateur = request.form.get('nom_utilisateur', '').strip()
+    mot_de_passe = request.form.get('mot_de_passe', '').strip()
+    role = request.form.get('role', 'Responsable')
+    service_id = request.form.get('service_id')
+    email = request.form.get('email', '').strip()
+
+    if not nom_utilisateur or not mot_de_passe:
+        flash('Le nom d\'utilisateur et le mot de passe sont obligatoires !', 'danger')
+        return redirect(url_for('gestion_admins'))
+
+    if auth.creer_admin(nom_utilisateur, mot_de_passe, role, service_id):
+        flash(f'Administrateur "{nom_utilisateur}" créé avec succès !', 'success')
+    else:
+        flash('Erreur lors de la création de l\'administrateur.', 'danger')
+
+    return redirect(url_for('gestion_admins'))
+
+@app.route('/modifier_admin/<int:id>', methods=['POST'])
+@super_admin_required
+def modifier_admin(id):
+    """Modifier un administrateur"""
+    role = request.form.get('role')
+    service_id = request.form.get('service_id')
+    email = request.form.get('email', '').strip()
+    nouveau_mdp = request.form.get('nouveau_mdp', '').strip()
+
+    # Implémenter la logique de modification
+    flash('Fonctionnalité de modification en cours de développement', 'info')
+    return redirect(url_for('gestion_admins'))
+
+@app.route('/supprimer_admin/<int:id>')
+@super_admin_required
+def supprimer_admin(id):
+    """Supprimer un administrateur"""
+    # Implémenter la logique de suppression
+    flash('Fonctionnalité de suppression en cours de développement', 'info')
+    return redirect(url_for('gestion_admins'))
 
 # ==================== COMMUNICATION ====================
 
