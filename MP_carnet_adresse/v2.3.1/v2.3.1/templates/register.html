@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Inscription Patient - Polyclinique SHIFAE{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow border-0">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <i class="bi bi-person-plus" style="font-size: 3.5rem; color: #0d6efd;"></i>
+                    <h2 class="mt-3 fw-bold">Créer un compte</h2>
+                    <p class="text-muted">Patient - Polyclinique SHIFAE</p>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <strong>Information :</strong> Pour créer un compte, vous devez déjà être enregistré comme patient dans notre base de données. Utilisez l'email que vous avez fourni à l'administration.
+                </div>
+
+                <form method="POST" action="{{ url_for('register') }}">
+                    <div class="mb-3">
+                        <label for="username" class="form-label fw-bold">
+                            <i class="bi bi-person"></i> Nom d'utilisateur
+                        </label>
+                        <input type="text" class="form-control form-control-lg" 
+                               id="username" name="username" required autofocus
+                               placeholder="Choisissez un nom d'utilisateur">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-bold">
+                            <i class="bi bi-envelope"></i> Email
+                        </label>
+                        <input type="email" class="form-control form-control-lg" 
+                               id="email" name="email" required
+                               placeholder="votre@email.com">
+                        <small class="text-muted">Doit correspondre à l'email enregistré à la polyclinique</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label fw-bold">
+                            <i class="bi bi-key"></i> Mot de passe
+                        </label>
+                        <input type="password" class="form-control form-control-lg" 
+                               id="password" name="password" required minlength="6"
+                               placeholder="Minimum 6 caractères">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="confirm_password" class="form-label fw-bold">
+                            <i class="bi bi-key-fill"></i> Confirmer le mot de passe
+                        </label>
+                        <input type="password" class="form-control form-control-lg" 
+                               id="confirm_password" name="confirm_password" required
+                               placeholder="Répétez le mot de passe">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                        <i class="bi bi-person-check"></i> Créer mon compte
+                    </button>
+                </form>
+
+                <hr class="my-4">
+
+                <div class="text-center">
+                    <p class="text-muted mb-2">Déjà un compte ?</p>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-box-arrow-in-right"></i> Se connecter
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <small class="text-muted">
+                <i class="bi bi-shield-check"></i> Vos informations sont sécurisées
+            </small>
+        </div>
+    </div>
+</div>
+{% endblock %}

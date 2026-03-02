@@ -1,0 +1,588 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Administrateurs - Polyclinique{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h1 class="display-5 fw-bold text-danger">
+                    <i class="bi bi-person-badge-fill"></i> Gestion des Administrateurs
+                </h1>
+                <p class="text-muted mb-0 fs-5">
+                    Administration des Directeurs et Responsables de service
+                </p>
+            </div>
+            <div class="mt-3 mt-md-0 d-flex gap-2">
+                <button type="button" class="btn btn-danger btn-lg shadow" data-bs-toggle="modal" data-bs-target="#ajouterAdminModal">
+                    <i class="bi bi-person-plus-fill"></i> 
+                    <span class="d-none d-sm-inline">Ajouter un responsable</span>
+                    <span class="d-inline d-sm-none">Ajouter</span>
+                </button>
+                <a href="{{ url_for('gestion_utilisateurs') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="bi bi-people"></i>
+                    <span class="d-none d-sm-inline">Utilisateurs</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm bg-danger text-white">
+            <div class="card-body d-flex align-items-center">
+                <div class="flex-shrink-0">
+                    <div class="stat-icon bg-white bg-opacity-25 rounded-circle p-3">
+                        <i class="bi bi-shield-fill fs-2"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="text-white-50 mb-1">Directeurs</h6>
+                    <h3 class="mb-0 fw-bold">{{ stats.nb_directeurs }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm bg-warning text-dark">
+            <div class="card-body d-flex align-items-center">
+                <div class="flex-shrink-0">
+                    <div class="stat-icon bg-dark bg-opacity-10 rounded-circle p-3">
+                        <i class="bi bi-person-badge fs-2"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="text-dark-50 mb-1">Responsables</h6>
+                    <h3 class="mb-0 fw-bold">{{ stats.nb_responsables }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm bg-info text-white">
+            <div class="card-body d-flex align-items-center">
+                <div class="flex-shrink-0">
+                    <div class="stat-icon bg-white bg-opacity-25 rounded-circle p-3">
+                        <i class="bi bi-people fs-2"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="text-white-50 mb-1">Utilisateurs</h6>
+                    <h3 class="mb-0 fw-bold">{{ stats.nb_utilisateurs }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm bg-success text-white">
+            <div class="card-body d-flex align-items-center">
+                <div class="flex-shrink-0">
+                    <div class="stat-icon bg-white bg-opacity-25 rounded-circle p-3">
+                        <i class="bi bi-hospital fs-2"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="text-white-50 mb-1">Services</h6>
+                    <h3 class="mb-0 fw-bold">{{ services|length }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Level Info -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm bg-light">
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-start">
+                            <div class="flex-shrink-0">
+                                <span class="badge bg-danger fs-4 p-3">
+                                    <i class="bi bi-shield-fill"></i>
+                                </span>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="mb-2">Directeur (Super Admin)</h5>
+                                <p class="text-muted mb-0">
+                                    <i class="bi bi-check-circle-fill text-success"></i> Créer des admins et des utilisateurs<br>
+                                    <i class="bi bi-check-circle-fill text-success"></i> Gérer tous les services<br>
+                                    <i class="bi bi-check-circle-fill text-success"></i> Configuration système
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-start">
+                            <div class="flex-shrink-0">
+                                <span class="badge bg-warning text-dark fs-4 p-3">
+                                    <i class="bi bi-person-badge"></i>
+                                </span>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="mb-2">Responsable (Admin)</h5>
+                                <p class="text-muted mb-0">
+                                    <i class="bi bi-check-circle-fill text-success"></i> Créer uniquement des utilisateurs<br>
+                                    <i class="bi bi-check-circle-fill text-success"></i> Gérer son service<br>
+                                    <i class="bi bi-x-circle-fill text-danger"></i> Pas de configuration système
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Admins List -->
+{% if admins %}
+<div class="card border-0 shadow">
+    <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-list-ul text-danger"></i> Liste des administrateurs
+            </h5>
+            <div class="input-group" style="max-width: 300px;">
+                <span class="input-group-text bg-light border-end-0">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" class="form-control bg-light border-start-0" id="searchAdmins" 
+                       placeholder="Rechercher...">
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="adminsTable">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 ps-4">Administrateur</th>
+                        <th class="border-0">Rôle</th>
+                        <th class="border-0">Service</th>
+                        <th class="border-0">Contact</th>
+                        <th class="border-0">Créé le</th>
+                        <th class="border-0 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for admin in admins %}
+                    <tr class="admin-row">
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="admin-avatar me-3 {% if admin.role == 'super_admin' %}bg-danger{% else %}bg-warning{% endif %}">
+                                    <span class="avatar-text">{{ admin.nom_utilisateur[0]|upper }}</span>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">
+                                        {{ admin.nom_utilisateur }}
+                                        {% if admin.nom_utilisateur == admin_info.nom_utilisateur %}
+                                            <span class="badge bg-success ms-1">Vous</span>
+                                        {% endif %}
+                                    </h6>
+                                    <small class="text-muted">ID: {{ admin.id }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if admin.role == 'super_admin' %}
+                                <span class="badge bg-danger fs-6">
+                                    <i class="bi bi-shield-fill"></i> Directeur
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark fs-6">
+                                    <i class="bi bi-person-badge"></i> Responsable
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if admin.service_nom %}
+                                <span class="badge bg-light text-dark border">
+                                    <i class="bi bi-hospital"></i> {{ admin.service_nom }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted fst-italic">Non assigné</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if admin.email %}
+                                <a href="mailto:{{ admin.email }}" class="text-decoration-none">
+                                    <i class="bi bi-envelope text-primary"></i> {{ admin.email }}
+                                </a>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ admin.date_creation or 'N/A' }}</small>
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-info btn-sm" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#detailsModal{{ admin.id }}"
+                                        title="Voir détails">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                
+                                {% if admin.id != admin_info.id %}
+                                <button type="button" class="btn btn-outline-warning btn-sm" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#modifierModal{{ admin.id }}"
+                                        title="Modifier">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                
+                                <a href="{{ url_for('supprimer_admin', id=admin.id) }}" 
+                                   class="btn btn-outline-danger btn-sm"
+                                   onclick="return confirm('Êtes-vous sûr de vouloir supprimer \"{{ admin.nom_utilisateur }}\" ?')"
+                                   title="Supprimer">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Modal Détails -->
+                    <div class="modal fade" id="detailsModal{{ admin.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow">
+                                <div class="modal-header {% if admin.role == 'super_admin' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                    <h5 class="modal-title">
+                                        <i class="bi bi-person-circle"></i> Détails de l'administrateur
+                                    </h5>
+                                    <button type="button" class="btn-close {% if admin.role == 'super_admin' %}btn-close-white{% endif %}" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body p-4">
+                                    <div class="text-center mb-4">
+                                        <div class="admin-avatar-large mx-auto mb-3 {% if admin.role == 'super_admin' %}bg-danger{% else %}bg-warning{% endif %}">
+                                            <span class="avatar-text-large">{{ admin.nom_utilisateur[0]|upper }}</span>
+                                        </div>
+                                        <h4 class="mb-1">{{ admin.nom_utilisateur }}</h4>
+                                        {% if admin.role == 'super_admin' %}
+                                            <span class="badge bg-danger fs-6">Directeur</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark fs-6">Responsable</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="bg-light rounded p-3">
+                                        <div class="row mb-3">
+                                            <div class="col-6 text-muted">ID:</div>
+                                            <div class="col-6 fw-bold">{{ admin.id }}</div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-6 text-muted">Service:</div>
+                                            <div class="col-6">{{ admin.service_nom or 'Non assigné' }}</div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-6 text-muted">Email:</div>
+                                            <div class="col-6">{{ admin.email or 'Non renseigné' }}</div>
+                                        </div>
+                                        <div class="row mb-0">
+                                            <div class="col-6 text-muted">Créé le:</div>
+                                            <div class="col-6">{{ admin.date_creation or 'N/A' }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer bg-light">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Modifier -->
+                    {% if admin.id != admin_info.id %}
+                    <div class="modal fade" id="modifierModal{{ admin.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow">
+                                <div class="modal-header bg-warning text-dark">
+                                    <h5 class="modal-title">
+                                        <i class="bi bi-pencil-square"></i> Modifier {{ admin.nom_utilisateur }}
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <form method="POST" action="{{ url_for('modifier_admin', id=admin.id) }}">
+                                    <div class="modal-body p-4">
+                                        <div class="mb-3">
+                                            <label for="role_{{ admin.id }}" class="form-label fw-bold">
+                                                <i class="bi bi-shield"></i> Rôle
+                                            </label>
+                                            <select class="form-select" id="role_{{ admin.id }}" name="role" required>
+                                                <option value="admin" {% if admin.role == 'admin' %}selected{% endif %}>
+                                                    Responsable (Admin)
+                                                </option>
+                                            </select>
+                                            <small class="text-muted">
+                                                <i class="bi bi-info-circle"></i> 
+                                                Pour créer un Directeur, utilisez la console ou contactez le développeur.
+                                            </small>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="service_{{ admin.id }}" class="form-label fw-bold">
+                                                <i class="bi bi-hospital"></i> Service assigné
+                                            </label>
+                                            <select class="form-select" id="service_{{ admin.id }}" name="service_id">
+                                                <option value="">Aucun service</option>
+                                                {% for service in services %}
+                                                <option value="{{ service.id }}" 
+                                                    {% if admin.service_id == service.id %}selected{% endif %}>
+                                                    {{ service.nom }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="email_{{ admin.id }}" class="form-label fw-bold">
+                                                <i class="bi bi-envelope"></i> Email
+                                            </label>
+                                            <input type="email" class="form-control" 
+                                                   id="email_{{ admin.id }}" name="email" 
+                                                   value="{{ admin.email or '' }}"
+                                                   placeholder="admin@polyclinique.ma">
+                                        </div>
+                                        <div class="mb-0">
+                                            <label for="nouveau_mdp_{{ admin.id }}" class="form-label fw-bold">
+                                                <i class="bi bi-key"></i> Nouveau mot de passe
+                                            </label>
+                                            <input type="password" class="form-control" 
+                                                   id="nouveau_mdp_{{ admin.id }}" name="nouveau_mdp"
+                                                   minlength="6" placeholder="Laisser vide pour ne pas changer">
+                                            <small class="text-muted">Minimum 6 caractères</small>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer bg-light">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                        <button type="submit" class="btn btn-warning">
+                                            <i class="bi bi-check-lg"></i> Enregistrer
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<!-- Empty State -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body text-center py-5">
+        <div class="empty-state-icon mb-4">
+            <i class="bi bi-person-badge" style="font-size: 5rem; color: #dee2e6;"></i>
+        </div>
+        <h4 class="text-muted mb-3">Aucun administrateur</h4>
+        <p class="text-muted mb-4">Commencez par ajouter un responsable de service.</p>
+        <button type="button" class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#ajouterAdminModal">
+            <i class="bi bi-person-plus-fill"></i> Ajouter un responsable
+        </button>
+    </div>
+</div>
+{% endif %}
+
+<!-- Modal Ajouter Admin -->
+<div class="modal fade" id="ajouterAdminModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-plus-fill"></i> Ajouter un responsable
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('ajouter_admin') }}">
+                <div class="modal-body p-4">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        Création d'un compte <strong>Responsable (Admin)</strong>. Pour créer un Directeur, utilisez la console.
+                    </div>
+                    <div class="mb-3">
+                        <label for="nom_utilisateur" class="form-label fw-bold">
+                            <i class="bi bi-person"></i> Nom d'utilisateur <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control form-control-lg" id="nom_utilisateur" name="nom_utilisateur" 
+                               required placeholder="Ex: responsable.cardio">
+                    </div>
+                    <div class="mb-3">
+                        <label for="mot_de_passe" class="form-label fw-bold">
+                            <i class="bi bi-key"></i> Mot de passe <span class="text-danger">*</span>
+                        </label>
+                        <input type="password" class="form-control" id="mot_de_passe" name="mot_de_passe" 
+                               required minlength="6" placeholder="Minimum 6 caractères">
+                    </div>
+                    <div class="mb-3">
+                        <label for="role" class="form-label fw-bold">
+                            <i class="bi bi-shield"></i> Rôle <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select" id="role" name="role" required>
+                            <option value="admin" selected>Responsable de Service (Admin)</option>
+                        </select>
+                        <small class="text-muted">Seul le Directeur peut créer d'autres Directeurs.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="service_id" class="form-label fw-bold">
+                            <i class="bi bi-hospital"></i> Service assigné
+                        </label>
+                        <select class="form-select" id="service_id" name="service_id">
+                            <option value="">Aucun service</option>
+                            {% for service in services %}
+                            <option value="{{ service.id }}">{{ service.nom }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">Le responsable pourra gérer ce service.</small>
+                    </div>
+                    <div class="mb-0">
+                        <label for="email" class="form-label fw-bold">
+                            <i class="bi bi-envelope"></i> Email
+                        </label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               placeholder="admin@polyclinique.ma">
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-check-lg"></i> Créer le responsable
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Back Button -->
+<div class="row mt-4">
+    <div class="col-12 text-center">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-lg">
+            <i class="bi bi-arrow-left"></i> Retour au tableau de bord
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+/* Gradient Backgrounds */
+.bg-gradient-info {
+    background: linear-gradient(135deg, #0dcaf0 0%, #0d6efd 100%);
+}
+
+/* Stat Icons */
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Admin Avatars */
+.admin-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-avatar.bg-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+}
+
+.admin-avatar.bg-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+}
+
+.avatar-text {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: white;
+}
+
+.admin-avatar-large {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-avatar-large.bg-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+}
+
+.admin-avatar-large.bg-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+}
+
+.avatar-text-large {
+    font-size: 3rem;
+    font-weight: bold;
+    color: white;
+}
+
+/* Table Styling */
+#adminsTable tbody tr:hover {
+    background-color: rgba(220, 53, 69, 0.05);
+}
+
+/* Empty State Animation */
+.empty-state-icon {
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+/* Card Hover Effects */
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+/* Button Group Styling */
+.btn-group .btn {
+    padding: 0.375rem 0.75rem;
+}
+
+/* Modal Styling */
+.modal-content {
+    border-radius: 1rem;
+}
+
+.modal-header {
+    border-radius: 1rem 1rem 0 0;
+}
+</style>
+
+<script>
+// Search functionality
+document.getElementById('searchAdmins')?.addEventListener('keyup', function() {
+    const searchValue = this.value.toLowerCase();
+    const rows = document.querySelectorAll('.admin-row');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchValue) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}

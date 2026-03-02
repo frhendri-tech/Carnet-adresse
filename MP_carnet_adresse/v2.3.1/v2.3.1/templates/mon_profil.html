@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Mon Profil - Polyclinique SHIFAE{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-person-gear"></i> Modifier mon profil
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('mon_profil') }}">
+                    <!-- User Account Info -->
+                    <h5 class="border-bottom pb-2 mb-3">
+                        <i class="bi bi-shield-person"></i> Informations du compte
+                    </h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Nom d'utilisateur</label>
+                            <input type="text" class="form-control" value="{{ admin_info.nom_utilisateur }}" readonly>
+                            <small class="text-muted">Le nom d'utilisateur ne peut pas être modifié</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Email</label>
+                            <input type="email" class="form-control" value="{{ admin_info.email or '' }}" readonly>
+                            <small class="text-muted">L'email est lié à votre dossier patient</small>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="nouveau_mdp" class="form-label fw-bold">Nouveau mot de passe</label>
+                            <input type="password" class="form-control" id="nouveau_mdp" name="nouveau_mdp" 
+                                   minlength="6" placeholder="Laisser vide pour ne pas changer">
+                            <small class="text-muted">Minimum 6 caractères</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="confirmer_mdp" class="form-label fw-bold">Confirmer le mot de passe</label>
+                            <input type="password" class="form-control" id="confirmer_mdp" name="confirmer_mdp" 
+                                   placeholder="Répétez le nouveau mot de passe">
+                        </div>
+                    </div>
+
+                    <!-- Personal Info -->
+                    {% if contact_info %}
+                    <h5 class="border-bottom pb-2 mb-3">
+                        <i class="bi bi-person-vcard"></i> Informations personnelles
+                    </h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="nom" class="form-label fw-bold">Nom <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="nom" name="nom" 
+                                   value="{{ contact_info.nom }}" required
+                                   oninput="this.value = this.value.toUpperCase()">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="prenom" class="form-label fw-bold">Prénom <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="prenom" name="prenom" 
+                                   value="{{ contact_info.prenom }}" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="telephone" class="form-label fw-bold">Téléphone <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="telephone" name="telephone" 
+                                   value="{{ contact_info.telephone }}" required maxlength="10">
+                            <small class="text-muted">10 chiffres</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email_contact" class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="email_contact" name="email_contact" 
+                                   value="{{ contact_info.email }}" required>
+                            <small class="text-muted">Cet email est utilisé pour vos rendez-vous</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="adresse" class="form-label fw-bold">Adresse</label>
+                        <textarea class="form-control" id="adresse" name="adresse" rows="2">{{ contact_info.adresse or '' }}</textarea>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="fonction" class="form-label fw-bold">Fonction/Profession</label>
+                            <input type="text" class="form-control" id="fonction" name="fonction" 
+                                   value="{{ contact_info.fonction or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="entreprise" class="form-label fw-bold">Entreprise</label>
+                            <input type="text" class="form-control" id="entreprise" name="entreprise" 
+                                   value="{{ contact_info.entreprise or '' }}">
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-x-circle"></i> Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle"></i> Enregistrer les modifications
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Validation du formulaire
+document.querySelector('form').addEventListener('submit', function(e) {
+    const mdp = document.getElementById('nouveau_mdp').value;
+    const confirmer = document.getElementById('confirmer_mdp').value;
+    
+    if (mdp && mdp !== confirmer) {
+        e.preventDefault();
+        alert('Les mots de passe ne correspondent pas !');
+        return false;
+    }
+    
+    const telephone = document.getElementById('telephone').value.replace(/\D/g, '');
+    if (telephone.length !== 10) {
+        e.preventDefault();
+        alert('Le numéro de téléphone doit contenir 10 chiffres !');
+        return false;
+    }
+    
+    return true;
+});
+</script>
+{% endblock %}

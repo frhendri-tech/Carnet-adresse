@@ -1,0 +1,558 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Utilisateurs - Polyclinique{% endblock %}
+
+{% block content %}
+<!-- Header Section with Stats -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h1 class="display-5 fw-bold text-primary">
+                    <i class="bi bi-people-fill"></i> Gestion des Utilisateurs
+                </h1>
+                <p class="text-muted mb-0 fs-5">
+                    {% if auth.est_super_admin(admin_info) %}
+                        Administration complète des comptes utilisateurs
+                    {% else %}
+                        Gestion des utilisateurs de votre service
+                    {% endif %}
+                </p>
+            </div>
+            <div class="mt-3 mt-md-0">
+                <button type="button" class="btn btn-primary btn-lg shadow" data-bs-toggle="modal" data-bs-target="#ajouterUserModal">
+                    <i class="bi bi-person-plus-fill"></i> 
+                    <span class="d-none d-sm-inline">Ajouter un utilisateur</span>
+                    <span class="d-inline d-sm-none">Ajouter</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card border-0 shadow-sm bg-gradient-info text-white">
+            <div class="card-body d-flex align-items-center">
+                <div class="flex-shrink-0">
+                    <div class="stat-icon bg-white bg-opacity-25 rounded-circle p-3">
+                        <i class="bi bi-people fs-2"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="text-white-50 mb-1">Total Utilisateurs</h6>
+                    <h3 class="mb-0 fw-bold">{{ users|length }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card border-0 shadow-sm bg-success text-white">
+            <div class="card-body d-flex align-items-center">
+                <div class="flex-shrink-0">
+                    <div class="stat-icon bg-white bg-opacity-25 rounded-circle p-3">
+                        <i class="bi bi-check-circle fs-2"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="text-white-50 mb-1">Comptes Actifs</h6>
+                    <h3 class="mb-0 fw-bold">{{ users|selectattr('actif')|list|length }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card border-0 shadow-sm bg-warning text-dark">
+            <div class="card-body d-flex align-items-center">
+                <div class="flex-shrink-0">
+                    <div class="stat-icon bg-dark bg-opacity-10 rounded-circle p-3">
+                        <i class="bi bi-hospital fs-2"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="text-dark-50 mb-1">Avec Service</h6>
+                    <h3 class="mb-0 fw-bold">{% set count = 0 %}{% for u in users %}{% if u.service_id %}{% set count = count + 1 %}{% endif %}{% endfor %}{{ count }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Role Info Banner -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm bg-light">
+            <div class="card-body">
+                <div class="d-flex align-items-start">
+                    <div class="flex-shrink-0">
+                        <i class="bi bi-info-circle-fill text-primary fs-3"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="mb-2">Hiérarchie des rôles</h5>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-danger fs-6 me-2">Directeur</span>
+                                    <small class="text-muted">Peut créer Admin et User</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-warning text-dark fs-6 me-2">Responsable</span>
+                                    <small class="text-muted">Peut créer User uniquement</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-info fs-6 me-2">Utilisateur</span>
+                                    <small class="text-muted">Lecture seule</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Users List -->
+{% if users %}
+<div class="card border-0 shadow">
+    <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-list-ul text-primary"></i> Liste des utilisateurs
+            </h5>
+            <div class="input-group" style="max-width: 300px;">
+                <span class="input-group-text bg-light border-end-0">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" class="form-control bg-light border-start-0" id="searchUsers" 
+                       placeholder="Rechercher...">
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="usersTable">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 ps-4">Utilisateur</th>
+                        <th class="border-0">Rôle</th>
+                        <th class="border-0">Service</th>
+                        <th class="border-0">Contact</th>
+                        <th class="border-0 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr class="user-row">
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="user-avatar me-3">
+                                    <span class="avatar-text">{{ user.nom_utilisateur[0]|upper }}</span>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">
+                                        {{ user.nom_utilisateur }}
+                                        {% if user.id == admin_info.id %}
+                                            <span class="badge bg-success ms-1">Vous</span>
+                                        {% endif %}
+                                    </h6>
+                                    <small class="text-muted">ID: {{ user.id }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if user.role == 'super_admin' %}
+                                <span class="badge bg-danger fs-6">
+                                    <i class="bi bi-shield-fill"></i> Directeur
+                                </span>
+                            {% elif user.role == 'admin' %}
+                                <span class="badge bg-warning text-dark fs-6">
+                                    <i class="bi bi-person-badge"></i> Responsable
+                                </span>
+                            {% else %}
+                                <span class="badge bg-info fs-6">
+                                    <i class="bi bi-person"></i> Utilisateur
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.service_nom %}
+                                <span class="badge bg-light text-dark border">
+                                    <i class="bi bi-hospital"></i> {{ user.service_nom }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted fst-italic">Non assigné</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.email %}
+                                <a href="mailto:{{ user.email }}" class="text-decoration-none">
+                                    <i class="bi bi-envelope text-primary"></i> {{ user.email }}
+                                </a>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-info btn-sm" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#detailsModal{{ user.id }}"
+                                        title="Voir détails">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                
+                                {% if user.id != admin_info.id %}
+                                <button type="button" class="btn btn-outline-warning btn-sm" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#modifierModal{{ user.id }}"
+                                        title="Modifier">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                
+                                <a href="{{ url_for('supprimer_utilisateur', id=user.id) }}" 
+                                   class="btn btn-outline-danger btn-sm"
+                                   onclick="return confirm('Êtes-vous sûr de vouloir supprimer \"{{ user.nom_utilisateur }}\" ?')"
+                                   title="Supprimer">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Modal Détails -->
+                    <div class="modal fade" id="detailsModal{{ user.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow">
+                                <div class="modal-header bg-info text-white">
+                                    <h5 class="modal-title">
+                                        <i class="bi bi-person-circle"></i> Détails de l'utilisateur
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body p-4">
+                                    <div class="text-center mb-4">
+                                        <div class="user-avatar-large mx-auto mb-3">
+                                            <span class="avatar-text-large">{{ user.nom_utilisateur[0]|upper }}</span>
+                                        </div>
+                                        <h4 class="mb-1">{{ user.nom_utilisateur }}</h4>
+                                        {% if user.role == 'super_admin' %}
+                                            <span class="badge bg-danger">Directeur</span>
+                                        {% elif user.role == 'admin' %}
+                                            <span class="badge bg-warning text-dark">Responsable</span>
+                                        {% else %}
+                                            <span class="badge bg-info">Utilisateur</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="bg-light rounded p-3">
+                                        <div class="row mb-3">
+                                            <div class="col-6 text-muted">ID:</div>
+                                            <div class="col-6 fw-bold">{{ user.id }}</div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-6 text-muted">Service:</div>
+                                            <div class="col-6">{{ user.service_nom or 'Non assigné' }}</div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-6 text-muted">Email:</div>
+                                            <div class="col-6">{{ user.email or 'Non renseigné' }}</div>
+                                        </div>
+                                        <div class="row mb-0">
+                                            <div class="col-6 text-muted">Créé le:</div>
+                                            <div class="col-6">{{ user.date_creation or 'N/A' }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer bg-light">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Modifier -->
+                    {% if user.id != admin_info.id %}
+                    <div class="modal fade" id="modifierModal{{ user.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow">
+                                <div class="modal-header bg-warning text-dark">
+                                    <h5 class="modal-title">
+                                        <i class="bi bi-pencil-square"></i> Modifier {{ user.nom_utilisateur }}
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <form method="POST" action="{{ url_for('modifier_utilisateur', id=user.id) }}">
+                                    <div class="modal-body p-4">
+                                        <div class="mb-3">
+                                            <label for="role_{{ user.id }}" class="form-label fw-bold">
+                                                <i class="bi bi-shield"></i> Rôle
+                                            </label>
+                                            <select class="form-select form-select-lg" id="role_{{ user.id }}" name="role" required>
+                                                <option value="user" {% if user.role == 'user' %}selected{% endif %}>
+                                                    Utilisateur (Lecture seule)
+                                                </option>
+                                                {% if auth.est_super_admin(admin_info) %}
+                                                <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>
+                                                    Responsable (Admin)
+                                                </option>
+                                                {% endif %}
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="service_{{ user.id }}" class="form-label fw-bold">
+                                                <i class="bi bi-hospital"></i> Service assigné
+                                            </label>
+                                            <select class="form-select" id="service_{{ user.id }}" name="service_id">
+                                                <option value="">Aucun service</option>
+                                                {% for service in services %}
+                                                <option value="{{ service.id }}" 
+                                                    {% if user.service_id == service.id %}selected{% endif %}>
+                                                    {{ service.nom }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="email_{{ user.id }}" class="form-label fw-bold">
+                                                <i class="bi bi-envelope"></i> Email
+                                            </label>
+                                            <input type="email" class="form-control" 
+                                                   id="email_{{ user.id }}" name="email" 
+                                                   value="{{ user.email or '' }}"
+                                                   placeholder="utilisateur@polyclinique.ma">
+                                        </div>
+                                        <div class="mb-0">
+                                            <label for="nouveau_mdp_{{ user.id }}" class="form-label fw-bold">
+                                                <i class="bi bi-key"></i> Nouveau mot de passe
+                                            </label>
+                                            <input type="password" class="form-control" 
+                                                   id="nouveau_mdp_{{ user.id }}" name="nouveau_mdp"
+                                                   minlength="6" placeholder="Laisser vide pour ne pas changer">
+                                            <small class="text-muted">Minimum 6 caractères</small>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer bg-light">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                        <button type="submit" class="btn btn-warning">
+                                            <i class="bi bi-check-lg"></i> Enregistrer
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<!-- Empty State -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body text-center py-5">
+        <div class="empty-state-icon mb-4">
+            <i class="bi bi-people" style="font-size: 5rem; color: #dee2e6;"></i>
+        </div>
+        <h4 class="text-muted mb-3">Aucun utilisateur trouvé</h4>
+        <p class="text-muted mb-4">Commencez par ajouter votre premier utilisateur.</p>
+        <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#ajouterUserModal">
+            <i class="bi bi-person-plus-fill"></i> Ajouter un utilisateur
+        </button>
+    </div>
+</div>
+{% endif %}
+
+<!-- Modal Ajouter Utilisateur -->
+<div class="modal fade" id="ajouterUserModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-plus-fill"></i> Ajouter un nouvel utilisateur
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('ajouter_utilisateur') }}">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="nom_utilisateur" class="form-label fw-bold">
+                            <i class="bi bi-person"></i> Nom d'utilisateur <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control form-control-lg" id="nom_utilisateur" name="nom_utilisateur" 
+                               required placeholder="Ex: utilisateur1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="mot_de_passe" class="form-label fw-bold">
+                            <i class="bi bi-key"></i> Mot de passe <span class="text-danger">*</span>
+                        </label>
+                        <input type="password" class="form-control" id="mot_de_passe" name="mot_de_passe" 
+                               required minlength="6" placeholder="Minimum 6 caractères">
+                    </div>
+                    <div class="mb-3">
+                        <label for="role" class="form-label fw-bold">
+                            <i class="bi bi-shield"></i> Rôle <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select" id="role" name="role" required>
+                            <option value="user" selected>Utilisateur (Lecture seule)</option>
+                            {% if peut_creer_admin %}
+                            <option value="admin">Responsable de Service (Admin)</option>
+                            {% endif %}
+                        </select>
+                        <small class="text-muted">
+                            {% if peut_creer_admin %}
+                                Vous pouvez créer des Responsables et des Utilisateurs
+                            {% else %}
+                                Vous pouvez créer uniquement des Utilisateurs
+                            {% endif %}
+                        </small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="service_id" class="form-label fw-bold">
+                            <i class="bi bi-hospital"></i> Service (optionnel)
+                        </label>
+                        <select class="form-select" id="service_id" name="service_id">
+                            <option value="">Aucun service</option>
+                            {% for service in services %}
+                            <option value="{{ service.id }}">{{ service.nom }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-0">
+                        <label for="email" class="form-label fw-bold">
+                            <i class="bi bi-envelope"></i> Email
+                        </label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               placeholder="utilisateur@polyclinique.ma">
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg"></i> Créer l'utilisateur
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Back Button -->
+<div class="row mt-4">
+    <div class="col-12 text-center">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-lg">
+            <i class="bi bi-arrow-left"></i> Retour au tableau de bord
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+/* Gradient Backgrounds */
+.bg-gradient-info {
+    background: linear-gradient(135deg, #0dcaf0 0%, #0d6efd 100%);
+}
+
+/* Stat Icons */
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* User Avatars */
+.user-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-text {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: white;
+}
+
+.user-avatar-large {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-text-large {
+    font-size: 3rem;
+    font-weight: bold;
+    color: white;
+}
+
+/* Table Styling */
+#usersTable tbody tr:hover {
+    background-color: rgba(102, 126, 234, 0.05);
+}
+
+/* Empty State Animation */
+.empty-state-icon {
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+/* Card Hover Effects */
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+/* Button Group Styling */
+.btn-group .btn {
+    padding: 0.375rem 0.75rem;
+}
+
+/* Modal Styling */
+.modal-content {
+    border-radius: 1rem;
+}
+
+.modal-header {
+    border-radius: 1rem 1rem 0 0;
+}
+</style>
+
+<script>
+// Search functionality
+document.getElementById('searchUsers')?.addEventListener('keyup', function() {
+    const searchValue = this.value.toLowerCase();
+    const rows = document.querySelectorAll('.user-row');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchValue) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}

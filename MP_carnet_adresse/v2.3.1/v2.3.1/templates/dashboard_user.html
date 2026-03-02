@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}Mon Espace - Polyclinique SHIFAE{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-4">
+            <i class="bi bi-person-circle text-info"></i> Mon Espace Patient
+        </h1>
+        <p class="text-muted">
+            Bienvenue {{ admin_info.nom_utilisateur }} | Gérez vos rendez-vous et vos informations personnelles
+        </p>
+    </div>
+</div>
+
+<!-- User Info Card -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm bg-info text-white">
+            <div class="card-body d-flex align-items-center">
+                <div class="flex-shrink-0">
+                    <div class="stat-icon bg-white bg-opacity-25 rounded-circle p-3">
+                        <i class="bi bi-person fs-2"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="text-white-50 mb-1">Nom d'utilisateur</h6>
+                    <h4 class="mb-0 fw-bold">{{ admin_info.nom_utilisateur }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm bg-primary text-white">
+            <div class="card-body d-flex align-items-center">
+                <div class="flex-shrink-0">
+                    <div class="stat-icon bg-white bg-opacity-25 rounded-circle p-3">
+                        <i class="bi bi-envelope fs-2"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="text-white-50 mb-1">Email</h6>
+                    <h6 class="mb-0">{{ admin_info.email or 'Non renseigné' }}</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm bg-success text-white">
+            <div class="card-body d-flex align-items-center">
+                <div class="flex-shrink-0">
+                    <div class="stat-icon bg-white bg-opacity-25 rounded-circle p-3">
+                        <i class="bi bi-calendar-check fs-2"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="text-white-50 mb-1">Mes RDV</h6>
+                    <h3 class="mb-0 fw-bold">{{ total_rdv }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- My Appointments -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-calendar-day"></i> Mes prochains rendez-vous
+                </h5>
+                <a href="{{ url_for('mes_rdv') }}" class="btn btn-light btn-sm">
+                    <i class="bi bi-list"></i> Voir tout
+                </a>
+            </div>
+            <div class="card-body">
+                {% if rdv_prochains %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Heure</th>
+                                <th>Service</th>
+                                <th>Motif</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rdv in rdv_prochains %}
+                            <tr>
+                                <td>{{ rdv.date_rdv }}</td>
+                                <td><strong>{{ rdv.heure_debut }}</strong></td>
+                                <td>
+                                    <span class="badge bg-primary">{{ rdv.service_nom }}</span>
+                                </td>
+                                <td>
+                                    {% if rdv.motif %}
+                                        <small>{{ rdv.motif[:30] }}{% if rdv.motif|length > 30 %}...{% endif %}</small>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if rdv.statut == 'confirmé' %}
+                                        <span class="badge bg-success">Confirmé</span>
+                                    {% elif rdv.statut == 'en_attente' %}
+                                        <span class="badge bg-warning text-dark">En attente</span>
+                                    {% elif rdv.statut == 'rejeté' %}
+                                        <span class="badge bg-danger">Rejeté</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ rdv.statut }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info mb-0">
+                    <i class="bi bi-info-circle"></i> 
+                    Vous n'avez aucun rendez-vous programmé. 
+                    <a href="{{ url_for('agenda') }}" class="alert-link">Demandez un rendez-vous</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- RDV Stats -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h5 class="mb-3"><i class="bi bi-graph-up"></i> Mes statistiques</h5>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ stats.en_attente }}</h3>
+                <p class="mb-0">En attente</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-success">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ stats.confirmes }}</h3>
+                <p class="mb-0">Confirmés</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ stats.rejetes }}</h3>
+                <p class="mb-0">Rejetés</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-secondary">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ stats.total }}</h3>
+                <p class="mb-0">Total</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- My Info & Actions -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-badge"></i> Mes informations</h5>
+            </div>
+            <div class="card-body">
+                {% if contact_info %}
+                <table class="table table-borderless">
+                    <tr>
+                        <td class="text-muted">Nom :</td>
+                        <td class="fw-bold">{{ contact_info.nom }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Prénom :</td>
+                        <td class="fw-bold">{{ contact_info.prenom }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Email :</td>
+                        <td>{{ contact_info.email }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Téléphone :</td>
+                        <td>{{ contact_info.telephone }}</td>
+                    </tr>
+                    {% if contact_info.adresse %}
+                    <tr>
+                        <td class="text-muted">Adresse :</td>
+                        <td>{{ contact_info.adresse }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+                <a href="{{ url_for('mon_profil') }}" class="btn btn-primary w-100">
+                    <i class="bi bi-pencil"></i> Modifier mes informations
+                </a>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i> 
+                    Vos informations de contact ne sont pas disponibles.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-lightning"></i> Actions rapides</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('agenda') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-calendar-plus"></i> Demander un rendez-vous
+                    </a>
+                    <a href="{{ url_for('mes_rdv') }}" class="btn btn-info btn-lg">
+                        <i class="bi bi-list-check"></i> Voir mes rendez-vous
+                    </a>
+                    <a href="{{ url_for('mon_profil') }}" class="btn btn-secondary btn-lg">
+                        <i class="bi bi-person-gear"></i> Modifier mon profil
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

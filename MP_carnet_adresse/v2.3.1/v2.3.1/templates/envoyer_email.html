@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}Envoyer un email - {{ contact.prenom|title }} {{ contact.nom|title }}{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Contacts</a></li>
+                <li class="breadcrumb-item active">Envoyer un email</li>
+            </ol>
+        </nav>
+        <h1 class="mb-1">
+            <i class="bi bi-envelope-fill text-primary"></i> Envoyer un email
+        </h1>
+        <p class="text-muted">À <strong>{{ contact.prenom|title }} {{ contact.nom|title }}</strong></p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Column: Contact Info -->
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-gradient-primary text-white border-0 py-3"
+                 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h5 class="mb-0">
+                    <i class="bi bi-person-circle"></i> Destinataire
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="avatar-circle mx-auto mb-3" 
+                         style="width: 80px; height: 80px; border-radius: 50%; 
+                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                display: flex; align-items: center; justify-content: center;
+                                font-size: 2rem; color: white; font-weight: bold;">
+                        {{ contact.prenom[0] }}{{ contact.nom[0] }}
+                    </div>
+                    <h5 class="mb-0">{{ contact.prenom|title }} {{ contact.nom|title }}</h5>
+                    <span class="badge bg-primary mt-2">{{ contact.categorie }}</span>
+                </div>
+                
+                <hr>
+                
+                <div class="contact-detail mb-3">
+                    <small class="text-muted d-block mb-1">
+                        <i class="bi bi-envelope"></i> Email
+                    </small>
+                    <a href="mailto:{{ contact.email }}" class="text-decoration-none fw-medium">
+                        {{ contact.email }}
+                    </a>
+                </div>
+                
+                <div class="contact-detail mb-3">
+                    <small class="text-muted d-block mb-1">
+                        <i class="bi bi-telephone"></i> Téléphone
+                    </small>
+                    <a href="tel:{{ contact.telephone }}" class="text-decoration-none fw-medium">
+                        {{ contact.telephone }}
+                    </a>
+                </div>
+                
+                {% if contact.entreprise %}
+                <div class="contact-detail mb-3">
+                    <small class="text-muted d-block mb-1">
+                        <i class="bi bi-building"></i> Entreprise
+                    </small>
+                    <span class="fw-medium">{{ contact.entreprise }}</span>
+                </div>
+                {% endif %}
+                
+                {% if contact.fonction %}
+                <div class="contact-detail">
+                    <small class="text-muted d-block mb-1">
+                        <i class="bi bi-briefcase"></i> Fonction
+                    </small>
+                    <span class="fw-medium">{{ contact.fonction }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Quick Templates -->
+        <div class="card shadow-sm border-0 mt-3">
+            <div class="card-header bg-light border-0">
+                <h6 class="mb-0"><i class="bi bi-lightning"></i> Templates rapides</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-primary btn-sm template-btn" 
+                            data-sujet="Bonjour {{ contact.prenom|title }}"
+                            data-message="Bonjour {{ contact.prenom|title }},
+
+J'espère que vous allez bien.
+
+Cordialement,
+L'équipe Polyclinique">
+                        <i class="bi bi-chat-dots"></i> Message simple
+                    </button>
+                    
+                    <button type="button" class="btn btn-outline-success btn-sm template-btn"
+                            data-sujet="Rappel rendez-vous"
+                            data-message="Bonjour {{ contact.prenom|title }},
+
+Nous vous rappelons votre rendez-vous.
+
+Cordialement,
+L'équipe Polyclinique">
+                        <i class="bi bi-calendar-check"></i> Rappel RDV
+                    </button>
+                    
+                    <button type="button" class="btn btn-outline-info btn-sm template-btn"
+                            data-sujet="Information importante"
+                            data-message="Bonjour {{ contact.prenom|title }},
+
+Nous vous informons que...
+
+Cordialement,
+L'équipe Polyclinique">
+                        <i class="bi bi-info-circle"></i> Information
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column: Email Form -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white border-0 py-3">
+                <h5 class="mb-0">
+                    <i class="bi bi-pencil-square"></i> Composer le message
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                {% if not config_email %}
+                <div class="alert alert-warning d-flex align-items-center mb-4">
+                    <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                    <div>
+                        <strong>Configuration email manquante</strong>
+                        <p class="mb-0">Veuillez configurer votre email dans les <a href="{{ url_for('configuration') }}" class="alert-link">paramètres</a> pour pouvoir envoyer des messages.</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <form method="POST" action="{{ url_for('envoyer_email', nom=contact.nom, prenom=contact.prenom) }}" id="emailForm">
+                    <div class="mb-4">
+                        <label for="sujet" class="form-label fw-bold">
+                            <i class="bi bi-type-h1"></i> Sujet <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control form-control-lg" id="sujet" name="sujet" 
+                               placeholder="Entrez le sujet de votre email..." required
+                               {% if not config_email %}disabled{% endif %}>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="message" class="form-label fw-bold">
+                            <i class="bi bi-chat-square-text"></i> Message <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" id="message" name="message" rows="12" 
+                                  placeholder="Écrivez votre message ici..." required
+                                  {% if not config_email %}disabled{% endif %}></textarea>
+                        <div class="form-text text-end">
+                            <span id="charCount">0</span> caractères
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-x-circle"></i> Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg px-5" {% if not config_email %}disabled{% endif %}>
+                            <i class="bi bi-send-fill"></i> Envoyer l'email
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Template buttons
+    document.querySelectorAll('.template-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const sujet = this.dataset.sujet;
+            const message = this.dataset.message;
+            document.getElementById('sujet').value = sujet;
+            document.getElementById('message').value = message;
+            updateCharCount();
+        });
+    });
+    
+    // Character counter
+    const messageField = document.getElementById('message');
+    const charCount = document.getElementById('charCount');
+    
+    function updateCharCount() {
+        charCount.textContent = messageField.value.length;
+    }
+    
+    messageField.addEventListener('input', updateCharCount);
+</script>
+
+<style>
+    .breadcrumb {
+        background: transparent;
+        padding: 0;
+    }
+    
+    .breadcrumb-item a {
+        color: #667eea;
+        text-decoration: none;
+    }
+    
+    .breadcrumb-item a:hover {
+        text-decoration: underline;
+    }
+    
+    .contact-detail {
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    
+    .contact-detail a {
+        color: #2c3e50;
+    }
+    
+    .contact-detail a:hover {
+        color: #667eea;
+    }
+    
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .template-btn {
+        text-align: left;
+        transition: all 0.2s;
+    }
+    
+    .template-btn:hover {
+        transform: translateX(5px);
+    }
+</style>
+{% endblock %}

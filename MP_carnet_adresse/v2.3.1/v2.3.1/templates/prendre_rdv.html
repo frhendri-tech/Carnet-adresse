@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Prendre un rendez-vous - Polyclinique{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-calendar-plus"></i> 
+                    {% if admin_info.role == 'user' %}
+                        Demander un rendez-vous
+                    {% else %}
+                        Prendre un rendez-vous
+                    {% endif %}
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                {% if admin_info.role == 'user' %}
+                <div class="alert alert-info mb-4">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <strong>Information :</strong> Votre demande de rendez-vous sera soumise à validation par un administrateur. Vous recevrez une confirmation une fois votre rendez-vous validé.
+                </div>
+                {% endif %}
+                
+                <form method="POST" action="{{ url_for('prendre_rdv') }}" id="formRDV">
+                    
+                    <!-- Service et Date -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="service_id" class="form-label">
+                                <i class="bi bi-hospital"></i> Service <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select form-select-lg" id="service_id" name="service_id" required>
+                                <option value="">-- Sélectionnez un service --</option>
+                                {% for s in services %}
+                                <option value="{{ s.id }}" {% if service and s.id == service.id %}selected{% endif %}>
+                                    {{ s.nom }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="date_rdv" class="form-label">
+                                <i class="bi bi-calendar"></i> Date <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" class="form-control form-control-lg" id="date_rdv" name="date_rdv" 
+                                   value="{{ date_rdv or '' }}" required min="{{ date_min }}">
+                        </div>
+                    </div>
+
+                    <!-- Heures -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="heure_debut" class="form-label">
+                                <i class="bi bi-clock"></i> Heure de début <span class="text-danger">*</span>
+                            </label>
+                            <input type="time" class="form-control form-control-lg" id="heure_debut" name="heure_debut" 
+                                   value="{{ heure_debut or '' }}" required step="1800">
+                            <small class="text-muted">Créneaux de 30 minutes</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="heure_fin" class="form-label">
+                                <i class="bi bi-clock-history"></i> Heure de fin
+                            </label>
+                            <input type="time" class="form-control form-control-lg" id="heure_fin" name="heure_fin" 
+                                   value="{{ heure_fin or '' }}" step="1800">
+                            <small class="text-muted">Optionnel (auto: +30 min)</small>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Informations du patient -->
+                    <h5 class="mb-3">
+                        <i class="bi bi-person-badge"></i> Informations du patient
+                    </h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="patient_nom" class="form-label">
+                                <i class="bi bi-person"></i> Nom <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="patient_nom" name="patient_nom" 
+                                   value="{{ prefill_nom }}"
+                                   required autofocus placeholder="Ex: ALAMI"
+                                   oninput="this.value = this.value.toUpperCase()"
+                                   {% if admin_info.role == 'user' and prefill_nom %}readonly{% endif %}>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="patient_prenom" class="form-label">
+                                <i class="bi bi-person"></i> Prénom <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="patient_prenom" name="patient_prenom" 
+                                   value="{{ prefill_prenom }}"
+                                   required placeholder="Ex: AHMED"
+                                   oninput="this.value = this.value.toUpperCase()"
+                                   {% if admin_info.role == 'user' and prefill_prenom %}readonly{% endif %}>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="patient_telephone" class="form-label">
+                                <i class="bi bi-telephone"></i> Téléphone <span class="text-danger">*</span>
+                            </label>
+                            <input type="tel" class="form-control" id="patient_telephone" name="patient_telephone" 
+                                   value="{{ prefill_telephone }}"
+                                   required placeholder="0612345678" maxlength="10">
+                            <small class="text-muted">10 chiffres</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="patient_email" class="form-label">
+                                <i class="bi bi-envelope"></i> Email
+                            </label>
+                            <input type="email" class="form-control" id="patient_email" name="patient_email" 
+                                   value="{{ prefill_email }}"
+                                   placeholder="patient@email.com"
+                                   {% if admin_info.role == 'user' and prefill_email %}readonly{% endif %}>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="motif" class="form-label">
+                            <i class="bi bi-card-text"></i> Motif de consultation
+                        </label>
+                        <textarea class="form-control" id="motif" name="motif" 
+                                  rows="3" placeholder="Décrivez brièvement le motif de la visite..."></textarea>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{{ url_for('agenda') }}" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-x-circle"></i> Annuler
+                        </a>
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle"></i> Confirmer le rendez-vous
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-calculer l'heure de fin (+30 min)
+document.getElementById('heure_debut').addEventListener('change', function() {
+    const heureDebut = this.value;
+    if (heureDebut) {
+        const [heures, minutes] = heureDebut.split(':').map(Number);
+        let finHeures = heures;
+        let finMinutes = minutes + 30;
+        
+        if (finMinutes >= 60) {
+            finHeures += 1;
+            finMinutes -= 60;
+        }
+        
+        const heureFin = `${finHeures.toString().padStart(2, '0')}:${finMinutes.toString().padStart(2, '0')}`;
+        document.getElementById('heure_fin').value = heureFin;
+    }
+});
+
+// Validation du formulaire
+document.getElementById('formRDV').addEventListener('submit', function(e) {
+    const telephone = document.getElementById('patient_telephone').value.replace(/\D/g, '');
+    if (telephone.length !== 10) {
+        e.preventDefault();
+        alert('Le numéro de téléphone doit contenir 10 chiffres !');
+        return false;
+    }
+    
+    const service = document.getElementById('service_id').value;
+    const date = document.getElementById('date_rdv').value;
+    const heure = document.getElementById('heure_debut').value;
+    
+    if (!service || !date || !heure) {
+        e.preventDefault();
+        alert('Veuillez remplir tous les champs obligatoires !');
+        return false;
+    }
+    
+    return true;
+});
+
+// Date minimale = aujourd'hui
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('date_rdv').setAttribute('min', today);
+});
+</script>
+
+<style>
+.form-control-lg, .form-select-lg {
+    font-size: 1.1rem;
+}
+</style>
+{% endblock %}
